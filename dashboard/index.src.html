@@ -159,6 +159,67 @@
   #glowDlg .btnrow button { padding: 14px; font-size: 17px; }
   @media (max-width: 900px) { .steps { grid-template-columns: 1fr 1fr; } }
 
+  /* view-only (not logged in) */
+  body.viewer .ctl-only { display: none !important; }
+  body.viewer .sol { pointer-events: none; }
+  body.viewer main { padding-bottom: 24px; }
+  .viewbadge { display: none; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--idlebg); padding: 4px 10px; border-radius: 99px; }
+  body.viewer .viewbadge { display: inline-block; }
+
+  /* operator login */
+  #loginDlg { position: fixed; inset: 0; z-index: 22; background: rgba(17,24,39,.5); display: none; align-items: center; justify-content: center; padding: 16px; }
+  #loginDlg.show { display: flex; }
+  #loginDlg form { background: #fff; border-radius: 18px; padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  #loginDlg img { height: 30px; display: block; margin-bottom: 14px; }
+  #loginDlg h3 { margin: 0 0 4px; font-size: 19px; }
+  #loginDlg p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  #loginDlg input { width: 100%; margin-bottom: 10px; }
+  #loginDlg .err { color: var(--bad); font-size: 13px; min-height: 18px; margin-bottom: 6px; }
+  #loginDlg .row2 { display: flex; gap: 8px; }
+  #loginDlg .row2 button { flex: 1; padding: 11px; }
+
+  /* kiosk: the Pi's own HDMI screen - view only */
+  #kioskView { display: none; }
+  body.kiosk #kioskView { display: grid; grid-template-rows: auto auto auto auto 1fr; height: 100vh; padding: 14px 22px 18px; gap: 12px; }
+  body.kiosk > header, body.kiosk > main, body.kiosk #stopBar { display: none !important; }
+  .k-top { display: flex; align-items: center; gap: 14px; }
+  .k-top .logo { height: 34px; }
+  .k-top .grow { flex: 1; }
+  #kClock { font-size: 20px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  body.kiosk .rpmcard { padding: 6px 20px 16px; }
+  body.kiosk .rpmcard .k { font-size: 18px; }
+  body.kiosk #bigRpm { font-size: min(26vh, 22vw); }
+  body.kiosk #spLine { font-size: 24px; }
+  body.kiosk .bar { height: 14px; }
+  /* graphs / sequence / events tabs: shrink the RPM so the tab gets the room */
+  body.kiosk.kcompact #bigRpm { font-size: 13vh; }
+  body.kiosk.kcompact #spLine { font-size: 18px; }
+  body.kiosk.kcompact .status { padding: 8px 20px; }
+  body.kiosk.kcompact .status .state { font-size: 4vh; }
+  body.kiosk.kcompact .status .sub { font-size: 18px; }
+  body.kiosk .status { padding: 14px 24px; flex-direction: row; align-items: baseline; gap: 22px; flex-wrap: wrap; }
+  body.kiosk .status .state { font-size: min(6vh, 5vw); }
+  body.kiosk .status .sub { font-size: 24px; margin: 0; }
+  body.kiosk .status .timer { font-size: 18px; margin: 0; }
+  .k-tabs { display: flex; gap: 6px; background: var(--idlebg); padding: 5px; border-radius: 14px; }
+  .k-tabs button { flex: 1; border: none; background: transparent; font-size: 20px; font-weight: 700; padding: 12px; border-radius: 10px; color: var(--muted); }
+  .k-tabs button.active { background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .k-panes { min-height: 0; overflow: auto; }
+  .k-pane { display: none; height: 100%; }
+  .k-pane.active { display: block; }
+  body.kiosk .tiles { margin-top: 0; grid-template-columns: repeat(4, 1fr); }
+  body.kiosk .tile { padding: 16px 20px; }
+  body.kiosk .tile .k { font-size: 17px; }
+  body.kiosk .tile .v { font-size: 46px; }
+  body.kiosk .tile .s { font-size: 15px; }
+  body.kiosk .sol { font-size: 20px; }
+  body.kiosk #seqCard { margin-top: 0; }
+  body.kiosk .step { font-size: 16px; padding: 16px; }
+  body.kiosk .step b { font-size: 19px; }
+  body.kiosk #seqInfo { font-size: 18px; }
+  body.kiosk #events { height: 100%; font-size: 16px; }
+  body.kiosk .k-pane[data-k="events"] .card { height: 100%; }
+
   /* connection chooser */
   #connDlg { position: fixed; inset: 0; z-index: 20; background: rgba(17,24,39,.45); display: none;
     align-items: center; justify-content: center; padding: 16px; }
@@ -198,6 +259,7 @@
     <button data-page="logging">Logging</button>
   </nav>
   <span class="grow"></span>
+  <span class="viewbadge">VIEW ONLY</span>
   <span id="linkPill" class="pill bad">Connecting</span>
   <button id="lockBtn">🔒 Locked</button>
 </header>
@@ -237,9 +299,9 @@
         <h2>Engine start</h2>
         <span class="muted small" id="seqInfo">Spins up on air, then asks you before the glow plug comes on.</span>
         <span class="grow"></span>
-        <button class="btn-start ctlbtn" id="seqStartBtn">▶ Start sequence</button>
-        <button class="btn-glow ctlbtn" id="seqGoBtn" style="display:none">🔥 Start glow plug</button>
-        <button class="btn-abort" id="seqAbortBtn" style="display:none">Abort start</button>
+        <button class="btn-start ctlbtn ctl-only" id="seqStartBtn">▶ Start sequence</button>
+        <button class="btn-glow ctlbtn ctl-only" id="seqGoBtn" style="display:none">🔥 Start glow plug</button>
+        <button class="btn-abort ctl-only" id="seqAbortBtn" style="display:none">Abort start</button>
       </div>
       <div class="steps" id="seqSteps">
         <div class="step" data-s="1"><b>1 · Spin up</b>to 4,000 RPM on air</div>
@@ -250,7 +312,7 @@
       </div>
     </div>
 
-    <div class="controls">
+    <div class="controls ctl-only">
       <div class="card ctl">
         <h2>RPM</h2>
         <div class="row"><input id="rpmIn" type="number" inputmode="numeric" value="3000" placeholder="Target RPM">
@@ -272,9 +334,9 @@
           <button class="ctlbtn" id="tBtn">Set temp</button><button class="ctlbtn" data-cmd="t tc">Use TC</button></div>
       </div>
     </div>
-    <div class="locknote" id="lockNote">🔒 Controls are locked. Tap <b>Locked</b> at the top and enter the PIN to control the rig. STOP always works.</div>
+    <div class="locknote ctl-only" id="lockNote">🔒 Controls are locked. Tap <b>Locked</b> at the top and enter the PIN to control the rig. STOP always works.</div>
 
-    <details class="adv card">
+    <details class="adv card ctl-only">
       <summary>Advanced: PID, auto-zero, deadband</summary>
       <div class="advgrid">
         <div class="lab"><span>Kp</span><input id="kpIn" value="0.005"><button class="ctlbtn" data-arg="kp">Set</button></div>
@@ -316,8 +378,8 @@
           <div>Duration</div><div id="recDur">—</div>
           <div>Size</div><div id="recSize">—</div>
         </div>
-        <div class="btnrow"><button class="btn-primary" id="logStart">Start recording</button><button id="logStop">Stop</button></div>
-        <label class="switch"><input type="checkbox" id="autoLog" checked> Start automatically when the rig runs, stop 10 s after it goes idle</label>
+        <div class="btnrow ctl-only"><button class="btn-primary" id="logStart">Start recording</button><button id="logStop">Stop</button></div>
+        <label class="switch ctl-only"><input type="checkbox" id="autoLog" checked> Start automatically when the rig runs, stop 10 s after it goes idle</label>
         <div style="margin-top:14px" class="small muted">Storage <span id="fsText">—</span></div>
         <div class="meter"><div id="fsBar"></div></div>
       </div>
@@ -345,10 +407,40 @@
     <div class="card">
       <h2>Event log</h2>
       <div id="events"></div>
-      <div class="cmdline"><input id="cmdIn" placeholder="Send a command, e.g. tune 5000, pump 30, 7on"><button id="cmdBtn">Send</button></div>
+      <div class="cmdline ctl-only"><input id="cmdIn" placeholder="Send a command, e.g. tune 5000, pump 30, 7on"><button id="cmdBtn">Send</button></div>
     </div>
   </section>
 </main>
+
+<div id="loginDlg">
+  <form id="loginForm" autocomplete="on">
+    <img alt="GMACH" id="loginLogo">
+    <h3>Operator login</h3>
+    <p>Only the operator can control the rig. Everyone else can view.</p>
+    <input id="loginUser" name="username" autocomplete="username" placeholder="Username" autocapitalize="off" spellcheck="false">
+    <input id="loginPass" name="password" type="password" autocomplete="current-password" placeholder="Password">
+    <div class="err" id="loginErr"></div>
+    <div class="row2"><button type="submit" class="btn-primary">Log in</button><button type="button" id="viewOnlyBtn">View only</button></div>
+  </form>
+</div>
+
+<div id="kioskView">
+  <div class="k-top"><img class="logo" alt="GMACH" id="kLogo"><span class="grow"></span><span id="kPillSlot"></span><span id="kClock"></span></div>
+  <div id="kRpmSlot"></div>
+  <div id="kStatusSlot"></div>
+  <nav class="k-tabs" id="kTabs">
+    <button data-k="readings" class="active">Readings</button>
+    <button data-k="graphs">Graphs</button>
+    <button data-k="seq">Start sequence</button>
+    <button data-k="events">Events</button>
+  </nav>
+  <div class="k-panes">
+    <div class="k-pane active" data-k="readings"></div>
+    <div class="k-pane" data-k="graphs"></div>
+    <div class="k-pane" data-k="seq"></div>
+    <div class="k-pane" data-k="events"><div class="card"></div></div>
+  </div>
+</div>
 
 <div id="glowDlg">
   <div class="box">
@@ -378,7 +470,7 @@
   </div>
 </div>
 
-<div id="stopBar"><button id="stopBtn">STOP EVERYTHING</button></div>
+<div id="stopBar" class="ctl-only"><button id="stopBtn">STOP EVERYTHING</button></div>
 
 <script>
 (() => {
@@ -391,7 +483,9 @@
   const fmt = (v, dp) => ok(v) ? v.toFixed(dp) : "—";
   const unit = (t, u) => t === "—" ? t : t + '<span class="u">' + u + "</span>";
   const USB_ONLY = __USBONLY__;          // set by build.py: true for the wired-only file
-  const LAPTOP = !!window.GMACH_LIVE_URL;  // page served by rig_server.py on the laptop
+  const LAPTOP = !!window.GMACH_LIVE_URL;  // page served by rig_server.py (Raspberry Pi)
+  const KIOSK = !!window.GMACH_KIOSK;      // the Pi's own HDMI screen: view only, kiosk layout
+  let opUser = null;
   const servedByEsp = !USB_ONLY && (location.protocol === "http:" || location.protocol === "https:");
   let espHost = servedByEsp ? location.hostname : "192.168.4.1";
   const api = path => (servedByEsp && location.hostname === espHost ? "" : "http://" + espHost) + path;
@@ -441,8 +535,8 @@
     es.onopen = () => {
       wsOpen = true;
       fetch(api("/time?ms=" + Date.now() + "&tz=" + (-new Date().getTimezoneOffset()))).catch(() => {});
-      const pin = sessionPin();
-      if (pin) checkPin(pin, true);
+      if (LAPTOP) refreshMe();
+      else { const pin = sessionPin(); if (pin) checkPin(pin, true); }
       loadHistory();
       updateLink();
     };
@@ -571,6 +665,13 @@
       catch (e) { addEvent("FAULT: send failed - " + e.message); }
       return;
     }
+    if (LAPTOP) {                                    // Pi server: operator login only
+      if (KIOSK) return;
+      if (!authed) { showLogin(); return; }
+      const r = await get("/cmd?c=" + encodeURIComponent(c));
+      if (!r.ok) { addEvent(r.text); if (/view only/i.test(r.text)) { setAuthed(false); showLogin("Your login has expired - log in again."); } }
+      return;
+    }
     const isStop = ["stop", "abort"].includes(c.replace(/\s/g, "").toLowerCase());
     if (!authed && !isStop) { askPin(); return; }
     const r = await get("/cmd?c=" + encodeURIComponent(c) + "&pin=" + encodeURIComponent(sessionPin()));
@@ -585,7 +686,7 @@
   // show / hide Wi-Fi-only parts
   function applyMode() {
     const usb = mode === "usb";
-    $("lockBtn").style.display = (usb || window.GMACH_LOCAL) ? "none" : "";
+    $("lockBtn").style.display = (usb || KIOSK) ? "none" : "";
     $("espRecCard").style.display = usb ? "none" : "";
     $("savedLogsCard").style.display = usb ? "none" : "";
     $("usbLogNote").style.display = usb ? "block" : "none";
@@ -715,7 +816,7 @@
       "Starter fuel open, glow plug on. Set the pump throttle as needed."][st] || "";
     $("seqInfo").textContent = info;
     if (st === 2 && lastSeq !== 2) { glowPromptDismissed = false; beep(); }
-    $("glowDlg").classList.toggle("show", st === 2 && !glowPromptDismissed);
+    $("glowDlg").classList.toggle("show", st === 2 && !glowPromptDismissed && authed && !KIOSK);
     lastSeq = st;
   }
   $("seqStartBtn").onclick = () => {
@@ -789,16 +890,64 @@
     checkPin(pin, false);
   }
   function setAuthed(v, silent) {
-    if (window.GMACH_LOCAL) v = true;      // the Pi's own screen at the rig: always in control
+    if (KIOSK) v = false;                  // the Pi's own screen never controls
     authed = v;
     const b = $("lockBtn");
-    b.textContent = v ? "🔓 Unlocked" : "🔒 Locked";
+    if (LAPTOP) {
+      document.body.classList.toggle("viewer", !v);
+      b.textContent = v ? "Log out " + (opUser || "") : "Log in";
+    } else b.textContent = v ? "🔓 Unlocked" : "🔒 Locked";
     b.classList.toggle("unlocked", v);
     $("lockNote").style.display = v ? "none" : "";
     document.querySelectorAll(".ctlbtn").forEach(x => x.style.opacity = v ? "" : ".55");
     if (!v && !silent) { try { sessionStorage.removeItem("gmachPin"); } catch (_) {} }
   }
-  $("lockBtn").onclick = () => { if (authed) setAuthed(false); else askPin(); };
+  $("lockBtn").onclick = () => {
+    if (LAPTOP) { if (authed) logout(); else showLogin(); return; }
+    if (authed) setAuthed(false); else askPin();
+  };
+
+  // ---------- operator login (Pi server) ----------
+  async function refreshMe() {
+    try {
+      const r = await fetch("/me", { cache: "no-store" });
+      const j = await r.json();
+      opUser = j.user;
+      setAuthed(!!j.user);
+      let viewer = false; try { viewer = sessionStorage.getItem("gmachViewer") === "1"; } catch (_) {}
+      if (!j.user && !viewer && !KIOSK) showLogin(j.configured ? "" : "No operator login has been set up on the Pi yet.");
+    } catch (_) {}
+  }
+  function showLogin(msg) {
+    if (KIOSK) return;
+    $("loginErr").textContent = msg || "";
+    $("loginDlg").classList.add("show");
+    setTimeout(() => $(($("loginUser").value ? "loginPass" : "loginUser")).focus(), 50);
+  }
+  $("loginLogo").src = document.querySelector("header .logo").src;
+  $("loginForm").onsubmit = async e => {
+    e.preventDefault();
+    $("loginErr").textContent = "Checking…";
+    try {
+      const r = await fetch("/login", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user: $("loginUser").value.trim(), pass: $("loginPass").value }) });
+      if (!r.ok) { $("loginErr").textContent = await r.text(); return; }
+      opUser = (await r.json()).user;
+      $("loginPass").value = "";
+      $("loginDlg").classList.remove("show");
+      try { sessionStorage.removeItem("gmachViewer"); } catch (_) {}
+      setAuthed(true);
+    } catch (_) { $("loginErr").textContent = "Can't reach the rig computer."; }
+  };
+  $("viewOnlyBtn").onclick = () => {
+    try { sessionStorage.setItem("gmachViewer", "1"); } catch (_) {}
+    $("loginDlg").classList.remove("show");
+  };
+  async function logout() {
+    try { await fetch("/logout", { method: "POST" }); } catch (_) {}
+    opUser = null;
+    setAuthed(false);
+  }
 
   // ---------- buttons ----------
   $("stopBtn").onclick = () => cmd("stop");
@@ -855,7 +1004,7 @@
       if (hist.length) {
         const lastHist = hist[hist.length - 1].t;
         data = hist.concat(data.filter(d => d.t > lastHist));
-        $("histNote").textContent = "history: " + hist.length + " points from the ESP32";
+        $("histNote").textContent = "history: " + hist.length + " points from the rig";
       }
       draw();
     } catch (e) { $("histNote").textContent = "could not load history"; }
@@ -876,6 +1025,11 @@
   function sizeChart() {
     const w = canvas.parentElement.clientWidth - 12;
     panelH = w < 600 ? 150 : 170;
+    if (KIOSK) {                                   // fit all panels into the kiosk pane
+      const pane = document.querySelector('.k-pane[data-k="graphs"]');
+      const avail = pane.clientHeight - (pane.querySelector(".gtools") || { offsetHeight: 0 }).offsetHeight - 70;
+      if (avail > 200) panelH = Math.max(70, avail / PANELS.length - 36);
+    }
     const h = PANELS.length * (panelH + 36) + 26;
     const dpr = window.devicePixelRatio || 1;
     canvas.style.height = h + "px";
@@ -899,8 +1053,9 @@
     return m + ":" + String(r).padStart(2, "0");
   }
 
+  function chartVisible() { return canvas.offsetParent !== null; }
   function draw() {
-    if (!$("page-graphs").classList.contains("active")) return;
+    if (!chartVisible()) return;
     const W = canvas.width / (window.devicePixelRatio || 1);
     const H = canvas.height / (window.devicePixelRatio || 1);
     ctx.clearRect(0, 0, W, H);
@@ -1021,7 +1176,7 @@
         return `<tr><td><b>${prettyName(f.n)}</b>${live ? ' <span class="live">● REC</span>' : ""}<div class="small muted">${f.n}</div></td>
           <td>${bytes(f.s)}</td>
           <td class="actions"><a href="${api("/dl?f=" + encodeURIComponent(f.n))}" download>Download</a>
-          <button data-del="${f.n}" ${live ? "disabled" : ""}>Delete</button></td></tr>`;
+          <button class="ctl-only" data-del="${f.n}" ${live ? "disabled" : ""}>Delete</button></td></tr>`;
       });
       $("fileRows").innerHTML = rows.length ? rows.join("") : '<tr><td colspan="3" class="muted">No logs yet.</td></tr>';
       document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => delLog(b.dataset.del));
@@ -1031,6 +1186,11 @@
   }
   async function delLog(n) {
     if (!confirm("Delete " + n + "? This can't be undone.")) return;
+    if (LAPTOP) {
+      const r = await fetch("/delete?f=" + encodeURIComponent(n));
+      if (!r.ok) alert(await r.text());
+      return loadLogs();
+    }
     let pin = sessionPin();
     if (!pin) { pin = prompt("Enter the control PIN to delete logs"); if (pin === null) return; }
     const r = await fetch(api("/delete?f=" + encodeURIComponent(n) + "&pin=" + encodeURIComponent(pin)));
@@ -1061,7 +1221,26 @@
   window.__gmach = { handle, draw, showPage };
   setAuthed(false, true);
   if (LAPTOP) $("recTitle").textContent = "Rig recorder (saved on the rig computer)";
-  if (window.GMACH_LOCAL) $("lockBtn").style.display = "none";
+  if (KIOSK) {
+    document.body.classList.add("kiosk", "viewer");
+    $("kLogo").src = document.querySelector("header .logo").src;
+    $("kPillSlot").appendChild($("linkPill"));
+    $("kRpmSlot").appendChild(document.querySelector(".rpmcard"));
+    $("kStatusSlot").appendChild($("statusBox"));
+    const pane = k => document.querySelector('.k-pane[data-k="' + k + '"]');
+    pane("readings").appendChild(document.querySelector(".tiles"));
+    pane("graphs").append(document.querySelector(".gtools"), $("chartWrap"));
+    pane("seq").appendChild($("seqCard"));
+    pane("events").firstElementChild.appendChild($("events"));
+    document.querySelectorAll("#kTabs button").forEach(b => b.onclick = () => {
+      document.querySelectorAll("#kTabs button").forEach(x => x.classList.toggle("active", x === b));
+      document.querySelectorAll(".k-pane").forEach(x => x.classList.toggle("active", x.dataset.k === b.dataset.k));
+      document.body.classList.toggle("kcompact", b.dataset.k !== "readings");
+      if (b.dataset.k === "graphs") requestAnimationFrame(() => { sizeChart(); draw(); });
+    });
+    const tick = () => $("kClock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    tick(); setInterval(tick, 1000);
+  }
   if (USB_ONLY) {
     $("wifiOpt").style.display = "none";
     (async () => {                                       // reuse the port from last time without a click

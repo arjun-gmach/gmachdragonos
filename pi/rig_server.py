@@ -8,16 +8,21 @@ forwards commands, and records runs as CSV files in ~/rig_logs.
 
   Dashboard:  http://<pi-name>.local:8080   (on the Pi itself: http://localhost:8080)
 
-The Pi's own screen gets full control without a PIN (it is at the rig).
-Other devices need the PIN to control; STOP and ABORT always work.
+Only the operator who logs in can control the rig. Everyone else - including the
+Pi's own HDMI screen (kiosk) - can only view.
 
-Settings (PIN etc.): ~/.config/gmach/config.json - created by install.sh, never in git.
+Operator login: ~/.config/gmach/config.json - created by install.sh, never in git.
+Change the login:  python3 rig_server.py --set-login
 Runs as the 'gmach-rig' service (see install.sh). Manual run:
     python3 rig_server.py              (auto-detects the Mega)
     python3 rig_server.py --port /dev/ttyACM0
 """
 
 import argparse
+import getpass
+import hashlib
+import hmac
+import secrets
 import datetime
 import json
 import os
@@ -37,7 +42,7 @@ import serial.tools.list_ports
 # ================= SETTINGS =================
 HTTP_PORT = 8080
 BAUD = 115200
-CONTROL_PIN = "1234"           # default only - set your own in ~/.config/gmach/config.json
+SESSION_HOURS = 12             # operator stays logged in this long
 LOG_DIR = os.path.expanduser("~/rig_logs")
 AUTOLOG = True                 # record automatically while the rig is active
 AUTOLOG_STOP_AFTER_S = 10      # ... and stop this long after it goes idle
@@ -47,13 +52,14 @@ HIST_MAX = 4000                # graph history kept in memory (thinned as runs g
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Local settings that must NOT go to GitHub (the PIN) live in ~/.config/gmach/config.json:
-#   {"pin": "4821", "http_port": 8080, "log_dir": "~/rig_logs", "autolog": true}
+# Local settings that must NOT go to GitHub (the operator login) live in ~/.config/gmach/config.json:
+#   {"users": {"arjun": {"salt": ..., "hash": ...}}, "http_port": 8080, "log_dir": "~/rig_logs", "autolog": true}
 CONFIG_PATH = os.path.expanduser("~/.config/gmach/config.json")
+USERS = {}
 try:
     with open(CONFIG_PATH) as _f:
         _cfg = json.load(_f)
-    CONTROL_PIN = str(_cfg.get("pin", CONTROL_PIN))
+    USERS = _cfg.get("users", {})
     HTTP_PORT = int(_cfg.get("http_port", HTTP_PORT))
     LOG_DIR = os.path.expanduser(_cfg.get("log_dir", LOG_DIR))
     AUTOLOG = bool(_cfg.get("autolog", AUTOLOG))
@@ -319,21 +325,78 @@ def background_loop():
         time.sleep(1.0)
 
 
+# ================= LOGIN =================
+PBKDF2_ITER = 200_000
+SESSIONS = {}                 # token -> (user, expiry time)
+FAILS = {}                    # ip -> [times of failed logins]
+AUTH_LOCK = threading.Lock()
+
+
+def hash_password(password, salt=None):
+    salt = salt or secrets.token_bytes(16)
+    h = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, PBKDF2_ITER)
+    return {"salt": salt.hex(), "hash": h.hex(), "iter": PBKDF2_ITER}
+
+
+def check_password(user, password):
+    rec = USERS.get(user)
+    if not rec:
+        hashlib.pbkdf2_hmac("sha256", password.encode(), b"x" * 16, PBKDF2_ITER)   # same timing either way
+        return False
+    h = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(rec["salt"]), int(rec.get("iter", PBKDF2_ITER)))
+    return hmac.compare_digest(h.hex(), rec["hash"])
+
+
+def set_login():
+    """python3 rig_server.py --set-login : create / replace the operator account"""
+    cfg = {}
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH) as f:
+            cfg = json.load(f)
+    user = input("Operator username: ").strip()
+    if not user:
+        raise SystemExit("no username given")
+    while True:
+        p1 = getpass.getpass("Password (8+ characters): ")
+        if len(p1) < 8:
+            print("too short"); continue
+        if p1 != getpass.getpass("Repeat password: "):
+            print("passwords don't match"); continue
+        break
+    cfg["users"] = {user: hash_password(p1)}          # one operator: replaces any previous login
+    cfg.pop("pin", None)
+    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+    with open(CONFIG_PATH, "w") as f:
+        json.dump(cfg, f, indent=2)
+    os.chmod(CONFIG_PATH, 0o600)
+    print(f"Saved. '{user}' is the only operator. Restart the server: sudo systemctl restart gmach-rig")
+
+
 # ================= HTTP =================
-SAFE_CMDS = {"stop", "abort"}
 NAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,40}\.csv$")
 
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "GMACH"
     protocol_version = "HTTP/1.1"
-    remote_needs_pin = True
 
     def log_message(self, *a):
         pass                                     # keep the console for rig messages
 
     def is_local(self):
-        return self.client_address[0] in ("127.0.0.1", "::1", "::ffff:127.0.0.1") and not ARGS.pin_everywhere
+        return self.client_address[0] in ("127.0.0.1", "::1", "::ffff:127.0.0.1")
+
+    def session_user(self):
+        cookie = self.headers.get("Cookie", "")
+        m = re.search(r"(?:^|;\s*)gmach_session=([A-Za-z0-9_-]+)", cookie)
+        if not m:
+            return None
+        with AUTH_LOCK:
+            rec = SESSIONS.get(m.group(1))
+            if not rec or rec[1] < time.time():
+                SESSIONS.pop(m.group(1), None)
+                return None
+            return rec[0]
 
     def reply(self, code, body, ctype="text/plain; charset=utf-8", extra=None):
         data = body.encode() if isinstance(body, str) else body
@@ -341,7 +404,6 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-cache")
-        self.send_header("Access-Control-Allow-Origin", "*")
         for k, v in (extra or {}).items():
             self.send_header(k, v)
         self.end_headers()
@@ -352,7 +414,7 @@ class Handler(BaseHTTPRequestHandler):
         q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
         route = {
             "/": self.page, "/live": self.live, "/history": self.history, "/logs": self.logs,
-            "/dl": self.download, "/delete": self.delete, "/auth": self.auth, "/cmd": self.cmd,
+            "/dl": self.download, "/delete": self.delete, "/cmd": self.cmd, "/me": self.me,
             "/time": lambda q: self.reply(200, "ok"), "/log": self.logctl,
         }.get(u.path)
         if route:
@@ -360,12 +422,67 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self.reply(302, "", extra={"Location": "/"})
 
+    def do_POST(self):
+        u = urllib.parse.urlparse(self.path)
+        n = min(int(self.headers.get("Content-Length") or 0), 4096)
+        body = self.rfile.read(n).decode(errors="replace") if n else ""
+        try:
+            data = json.loads(body) if body else {}
+        except ValueError:
+            data = {}
+        if u.path == "/login":
+            self.login(data)
+        elif u.path == "/logout":
+            self.logout()
+        else:
+            self.reply(404, "not found")
+
+    # ---- login ----
+    def me(self, q):
+        self.reply(200, json.dumps({"user": self.session_user(), "configured": bool(USERS)}), "application/json")
+
+    def login(self, data):
+        ip = self.client_address[0]
+        now = time.time()
+        with AUTH_LOCK:
+            recent = [t for t in FAILS.get(ip, []) if now - t < 300]
+            FAILS[ip] = recent
+        if len(recent) >= 5:
+            return self.reply(429, "too many attempts - wait 5 minutes")
+        user, pw = str(data.get("user", "")).strip(), str(data.get("pass", ""))
+        if not USERS:
+            return self.reply(503, "no operator login set up - run: python3 rig_server.py --set-login")
+        if not check_password(user, pw):
+            with AUTH_LOCK:
+                FAILS.setdefault(ip, []).append(now)
+            time.sleep(1)
+            return self.reply(403, "wrong username or password")
+        token = secrets.token_urlsafe(32)
+        with AUTH_LOCK:
+            SESSIONS[token] = (user, now + SESSION_HOURS * 3600)
+            FAILS.pop(ip, None)
+        push_msg(f"operator {user} logged in")
+        self.reply(200, json.dumps({"user": user}), "application/json", {
+            "Set-Cookie": f"gmach_session={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age={SESSION_HOURS * 3600}"})
+
+    def logout(self):
+        cookie = self.headers.get("Cookie", "")
+        m = re.search(r"(?:^|;\s*)gmach_session=([A-Za-z0-9_-]+)", cookie)
+        user = self.session_user()
+        if m:
+            with AUTH_LOCK:
+                SESSIONS.pop(m.group(1), None)
+        if user:
+            push_msg(f"operator {user} logged out")
+        self.reply(200, "ok", extra={"Set-Cookie": "gmach_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0"})
+
     # ---- pages ----
     def page(self, q):
         with open(os.path.join(HERE, "dashboard.html"), encoding="utf-8") as f:
             html = f.read()
-        inject = "<script>window.GMACH_LIVE_URL='/live';window.GMACH_LOCAL=%s;</script>" % (
-            "true" if self.is_local() else "false")
+        kiosk = self.is_local() and "operator" not in q        # http://localhost:8080/?operator = normal page
+        inject = "<script>window.GMACH_LIVE_URL='/live';window.GMACH_KIOSK=%s;</script>" % (
+            "true" if kiosk else "false")
         self.reply(200, html.replace("</head>", inject + "</head>", 1), "text/html; charset=utf-8")
 
     def live(self, q):
@@ -373,7 +490,6 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
-        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Connection", "keep-alive")
         self.end_headers()
         with S.lock:
@@ -426,8 +542,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def delete(self, q):
         n = q.get("f", "")
-        if not (self.is_local() or q.get("pin") == CONTROL_PIN):
-            return self.reply(403, "wrong PIN")
+        if not self.session_user():
+            return self.reply(403, "view only - log in as the operator to delete logs")
         if not NAME_RE.match(n):
             return self.reply(400, "bad name")
         if S.log_file and S.log_name == n:
@@ -439,26 +555,22 @@ class Handler(BaseHTTPRequestHandler):
         push_msg(f"deleted log {n}")
         self.reply(200, "ok")
 
-    # ---- control ----
-    def auth(self, q):
-        if self.is_local() or q.get("pin") == CONTROL_PIN:
-            self.reply(200, "ok")
-        else:
-            self.reply(403, "wrong PIN")
-
+    # ---- control (operator only) ----
     def cmd(self, q):
+        user = self.session_user()
+        if not user:
+            return self.reply(403, "view only - log in as the operator to control the rig")
         c = q.get("c", "").strip()
         if not c or len(c) > 22 or "\n" in c:
             return self.reply(400, "bad command")
-        safe = c.replace(" ", "").lower() in SAFE_CMDS
-        if not (safe or self.is_local() or q.get("pin") == CONTROL_PIN):
-            return self.reply(403, "locked - enter the PIN to control the rig (STOP always works)")
         if not send_to_rig(c):
             return self.reply(503, "Mega not connected - check the USB cable / isolator")
         push_msg("> " + c)
         self.reply(200, "ok")
 
     def logctl(self, q):
+        if not self.session_user():
+            return self.reply(403, "view only - log in as the operator to change recording")
         a = q.get("a", "")
         if a == "start":
             log_start(False)
@@ -488,8 +600,12 @@ def main():
     ap = argparse.ArgumentParser(description="GMACH rig server")
     ap.add_argument("--port", help="serial port of the Mega (default: auto-detect)")
     ap.add_argument("--http", type=int, default=HTTP_PORT, help="dashboard port (default 8080)")
-    ap.add_argument("--pin-everywhere", action="store_true", help="require the PIN on the Pi's own screen too")
+    ap.add_argument("--set-login", action="store_true", help="create / change the operator username and password")
     ARGS = ap.parse_args()
+    if ARGS.set_login:
+        return set_login()
+    if not USERS:
+        print("NOTE: no operator login yet - everyone is view-only. Set one: python3 rig_server.py --set-login", flush=True)
 
     os.makedirs(LOG_DIR, exist_ok=True)
     threading.Thread(target=serial_loop, args=(ARGS.port,), daemon=True).start()

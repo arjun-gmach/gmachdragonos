@@ -54,9 +54,17 @@ Relay board is active-low. Flyback diodes (1N4007) across each solenoid coil, st
    bash ~/gmach-rig/pi/install.sh
    sudo reboot
    ```
-   The installer asks for the control PIN and stores it in `~/.config/gmach/config.json` (never committed).
+   The installer asks for the **operator username and password** and stores a salted hash in `~/.config/gmach/config.json` (never committed). Change it later with `python3 ~/gmach-rig/pi/rig_server.py --set-login`.
 
-After the reboot the HDMI screen shows the dashboard full screen with full control. Other devices open `http://gmach-rig.local:8080` (or `http://<ip shown by hostname -I>:8080`) and need the PIN to control. **STOP** and **Abort** always work without the PIN.
+### Who can do what
+
+| Where | Can view | Can control |
+|---|---|---|
+| Pi's HDMI screen (kiosk) | ✅ large RPM, status, tabs for readings / graphs / start sequence / events | ❌ never |
+| Any phone/laptop, not logged in | ✅ all three pages | ❌ |
+| Phone/laptop logged in as the operator | ✅ | ✅ everything, including STOP |
+
+Devices open `http://<pi-name>.local:8080` (or `http://<ip from hostname -I>:8080`). On the Pi itself, `http://localhost:8080/?operator` opens the normal page instead of the kiosk. The kiosk has no STOP button: the rig needs a physical emergency stop within reach.
 
 **Update the Pi** after pushing changes:
 ```bash

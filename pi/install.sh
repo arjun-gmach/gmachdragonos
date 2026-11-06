@@ -13,16 +13,13 @@ sudo apt-get install -y python3-serial
 echo "== serial port permission"
 sudo usermod -aG dialout "$USER"
 
-echo "== local settings (kept out of git)"
+echo "== operator login (kept out of git)"
 mkdir -p "$CONF_DIR" "$HOME/rig_logs"
-if [ ! -f "$CONF_DIR/config.json" ]; then
-  read -r -p "Choose a control PIN for phones/laptops [1234]: " PIN
-  PIN=${PIN:-1234}
-  printf '{\n  "pin": "%s",\n  "http_port": 8080,\n  "log_dir": "~/rig_logs",\n  "autolog": true\n}\n' "$PIN" > "$CONF_DIR/config.json"
-  chmod 600 "$CONF_DIR/config.json"
-  echo "   saved $CONF_DIR/config.json"
+if ! grep -q '"users"' "$CONF_DIR/config.json" 2>/dev/null; then
+  echo "   Only this login can control the rig - everyone else (and the HDMI kiosk) can only view."
+  python3 "$PI_DIR/rig_server.py" --set-login
 else
-  echo "   keeping existing $CONF_DIR/config.json"
+  echo "   keeping the existing operator login (change it: python3 $PI_DIR/rig_server.py --set-login)"
 fi
 
 echo "== server service (starts at boot, restarts if it crashes)"
