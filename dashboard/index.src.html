@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>GMACH Rig</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3f4f6; --panel: #ffffff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --grid: #eef0f3;
+    --rpm: #1d4ed8; --sp: #ea580c; --open: #15803d; --pump: #7e22ce; --temp: #c2410c;
+    --pt: #0e7490; --ps: #7c5a4a; --q: #4338ca; --vel: #3730a3;
+    --ok: #15803d; --okbg: #dcfce7; --warn: #b45309; --warnbg: #fef3c7; --bad: #b91c1c; --badbg: #fee2e2;
+    --info: #1d4ed8; --infobg: #dbeafe; --idle: #374151; --idlebg: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.4 -apple-system, "Segoe UI", Roboto, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+  button, input, select { font: inherit; color: var(--text); }
+  button { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 9px 12px; cursor: pointer; }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  input, select { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 9px 10px; min-width: 0; }
+
+  /* ---------- top bar ---------- */
+  header { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,.96); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line); padding: 8px 16px; padding-top: max(8px, env(safe-area-inset-top));
+    display: flex; align-items: center; gap: 12px; }
+  .logo { height: 28px; width: auto; display: block; }
+  .grow { flex: 1; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .pill.ok { color: var(--ok); background: var(--okbg); }
+  .pill.bad { color: var(--bad); background: var(--badbg); }
+  .pill.warn { color: var(--warn); background: var(--warnbg); }
+  #lockBtn { padding: 6px 12px; font-weight: 600; }
+  #lockBtn.unlocked { background: var(--okbg); color: var(--ok); border-color: transparent; }
+
+  nav.tabs { display: flex; gap: 4px; background: var(--idlebg); padding: 4px; border-radius: 12px; }
+  nav.tabs button { border: none; background: transparent; padding: 7px 14px; border-radius: 9px; font-weight: 600; color: var(--muted); }
+  nav.tabs button.active { background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 16px; padding-bottom: 110px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .card + .card { margin-top: 14px; }
+  .controls > .card, .lgrid > .card { margin-top: 0; }
+  .lgrid + .card { margin-top: 14px; }
+  h2 { font-size: 15px; margin: 0 0 12px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+
+  /* ---------- overview ---------- */
+  .hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+  .status { border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: center; }
+  .status .state { font-size: clamp(28px, 6vw, 44px); font-weight: 800; letter-spacing: .02em; line-height: 1.05; }
+  .status .sub { margin-top: 6px; font-size: 16px; font-weight: 500; }
+  .status .timer { margin-top: 10px; font-size: 13px; opacity: .8; font-variant-numeric: tabular-nums; }
+  .st-ok { background: var(--okbg); color: var(--ok); }
+  .st-warn { background: var(--warnbg); color: var(--warn); }
+  .st-bad { background: var(--badbg); color: var(--bad); }
+  .st-info { background: var(--infobg); color: var(--info); }
+  .st-idle { background: var(--idlebg); color: var(--idle); }
+  .rpmcard { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+  .rpmcard .k { color: var(--muted); font-weight: 600; letter-spacing: .08em; font-size: 13px; }
+  #bigRpm { font-size: clamp(64px, 16vw, 128px); font-weight: 800; color: var(--rpm); line-height: 1;
+    font-variant-numeric: tabular-nums; margin: 6px 0; }
+  #spLine { font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bar { height: 10px; background: var(--idlebg); border-radius: 99px; overflow: hidden; margin-top: 12px; position: relative; }
+  .bar > div { height: 100%; background: var(--rpm); width: 0; transition: width .3s; border-radius: 99px; }
+  .bar .mark { position: absolute; top: -3px; bottom: -3px; width: 3px; background: var(--sp); border-radius: 2px; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
+  .tile .k { color: var(--muted); font-size: 13px; }
+  .tile .v { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .u { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 3px; }
+  .tile .s { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .solrow { display: flex; gap: 8px; margin-top: 6px; }
+  .sol { flex: 1; font-weight: 700; padding: 10px 6px; }
+  .sol.on { background: var(--ok); color: #fff; border-color: transparent; }
+  .glow { font-weight: 700; }
+  .glow.on { background: #ea580c; color: #fff; border-color: transparent; }
+
+  .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  .ctl .row { display: flex; gap: 8px; }
+  .ctl .row input { flex: 1; width: 100%; }
+  .ctl .row + .row { margin-top: 8px; }
+  .btn-primary { background: var(--rpm); color: #fff; border-color: transparent; font-weight: 600; }
+  .btn-warn { background: var(--warnbg); color: var(--warn); border-color: transparent; font-weight: 600; }
+  .locknote { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  details.adv { margin-top: 14px; }
+  details.adv summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+  .advgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 12px; }
+  .lab { display: grid; grid-template-columns: 90px 1fr 64px; gap: 6px; align-items: center; }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btnrow button { flex: 1; font-size: 14px; }
+
+  /* STOP bar - always visible */
+  #stopBar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding: 10px 16px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); background: rgba(255,255,255,.96);
+    border-top: 1px solid var(--line); backdrop-filter: blur(6px); }
+  #stopBtn { width: 100%; max-width: 1168px; display: block; margin: 0 auto; background: var(--bad); color: #fff;
+    border: none; font-size: 20px; font-weight: 800; letter-spacing: .06em; padding: 15px; border-radius: 14px; }
+
+  /* ---------- graphs ---------- */
+  .gtools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  #chartWrap { padding: 8px 6px 4px; }
+  #chart { width: 100%; display: block; }
+
+  /* ---------- logging ---------- */
+  .lgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .recstate { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--muted); }
+  .dot.rec { background: var(--bad); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 10px; margin: 12px 0; font-size: 14px; }
+  .kv div:nth-child(odd) { color: var(--muted); }
+  .switch { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; }
+  .switch input { width: 20px; height: 20px; }
+  .meter { height: 8px; background: var(--idlebg); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+  .meter > div { height: 100%; background: var(--info); width: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; color: var(--muted); font-weight: 600; font-size: 13px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  td.actions { text-align: right; white-space: nowrap; }
+  td.actions button { padding: 6px 10px; font-size: 13px; }
+  td.actions a { display: inline-block; padding: 6px 10px; font-size: 13px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--text); }
+  .live { color: var(--bad); font-weight: 700; font-size: 12px; }
+  #events { height: 280px; overflow-y: auto; font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
+  #events .fault { color: var(--bad); font-weight: 700; }
+  #events .cmd { color: var(--pump); }
+  .cmdline { display: flex; gap: 8px; margin-top: 10px; }
+  .cmdline input { flex: 1; }
+
+  /* start sequence */
+  .seqcard { margin-top: 14px; }
+  .seqhead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .seqhead h2 { margin: 0; }
+  .seqhead .grow { flex: 1; }
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 14px; }
+  .step { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13px; color: var(--muted); }
+  .step b { display: block; font-size: 14px; color: var(--text); margin-bottom: 2px; }
+  .step.done { background: var(--okbg); border-color: transparent; color: var(--ok); }
+  .step.done b { color: var(--ok); }
+  .step.now { background: var(--warnbg); border-color: var(--warn); color: var(--warn); }
+  .step.now b { color: var(--warn); }
+  .btn-start { background: var(--ok); color: #fff; border-color: transparent; font-weight: 700; padding: 10px 18px; }
+  .btn-glow { background: #ea580c; color: #fff; border-color: transparent; font-weight: 800; padding: 10px 18px; }
+  .btn-abort { background: var(--badbg); color: var(--bad); border-color: transparent; font-weight: 700; padding: 10px 18px; }
+  #glowDlg { position: fixed; inset: 0; z-index: 21; background: rgba(17,24,39,.55); display: none; align-items: center; justify-content: center; padding: 16px; }
+  #glowDlg.show { display: flex; }
+  #glowDlg .box { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+  #glowDlg .big { font-size: 26px; font-weight: 800; color: var(--warn); margin: 6px 0 4px; }
+  #glowDlg p { color: var(--muted); margin: 0 0 18px; }
+  #glowDlg .btnrow button { padding: 14px; font-size: 17px; }
+  @media (max-width: 900px) { .steps { grid-template-columns: 1fr 1fr; } }
+
+  /* connection chooser */
+  #connDlg { position: fixed; inset: 0; z-index: 20; background: rgba(17,24,39,.45); display: none;
+    align-items: center; justify-content: center; padding: 16px; }
+  #connDlg.show { display: flex; }
+  #connDlg .box { background: #fff; border-radius: 18px; padding: 22px; width: 100%; max-width: 460px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  #connDlg .box img { height: 30px; display: block; margin-bottom: 14px; }
+  .opt { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; }
+  .opt h3 { margin: 0 0 4px; font-size: 16px; }
+  .opt p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+  .opt .row { display: flex; gap: 8px; }
+  .opt .row input { flex: 1; }
+  #linkPill { cursor: pointer; }
+  .usbonly-note { display: none; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .controls { grid-template-columns: 1fr; }
+    .lgrid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    header { flex-wrap: wrap; gap: 8px; }
+    nav.tabs { order: 5; width: 100%; }
+    nav.tabs button { flex: 1; }
+    main { padding: 12px; padding-bottom: 104px; }
+    .tile .v { font-size: 24px; }
+    .card { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" alt="GMACH" src="data:image/png;base64,__LOGO__">
+  <nav class="tabs" id="tabs">
+    <button data-page="overview" class="active">Overview</button>
+    <button data-page="graphs">Graphs</button>
+    <button data-page="logging">Logging</button>
+  </nav>
+  <span class="grow"></span>
+  <span id="linkPill" class="pill bad">Connecting</span>
+  <button id="lockBtn">🔒 Locked</button>
+</header>
+
+<main>
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="page active" id="page-overview">
+    <div class="hero">
+      <div class="status st-idle" id="statusBox">
+        <div class="state" id="stState">CONNECTING</div>
+        <div class="sub" id="stSub">Looking for the rig…</div>
+        <div class="timer" id="stTimer"></div>
+      </div>
+      <div class="card rpmcard">
+        <div class="k">RPM</div>
+        <div id="bigRpm">—</div>
+        <div id="spLine">setpoint —</div>
+        <div class="bar"><div id="rpmBar"></div><span class="mark" id="spMark" style="display:none"></span></div>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><div class="k">Temperature</div><div class="v" id="tTemp" style="color:var(--temp)">—</div><div class="s" id="tTempPk">peak —</div></div>
+      <div class="tile"><div class="k">Velocity</div><div class="v" id="tVel" style="color:var(--vel)">—</div><div class="s" id="tMach">Mach —</div></div>
+      <div class="tile"><div class="k">Air valve</div><div class="v" id="tOpen" style="color:var(--open)">—</div><div class="s" id="tOpenPct">— % open</div></div>
+      <div class="tile"><div class="k">Pump</div><div class="v" id="tPump" style="color:var(--pump)">—</div><div class="s">throttle</div></div>
+      <div class="tile"><div class="k">Total pressure</div><div class="v" id="tPt" style="color:var(--pt)">—</div><div class="s" id="tPtBar">— bar</div></div>
+      <div class="tile"><div class="k">Static pressure</div><div class="v" id="tPs" style="color:var(--ps)">—</div><div class="s" id="tPsBar">— bar</div></div>
+      <div class="tile"><div class="k">Dynamic pressure q</div><div class="v" id="tQ" style="color:var(--q)">—</div><div class="s">Pt − Ps</div></div>
+      <div class="tile"><div class="k">Solenoids</div>
+        <div class="solrow"><button class="sol ctlbtn" id="sol7">7 OFF</button><button class="sol ctlbtn" id="sol8">8 OFF</button></div>
+      </div>
+    </div>
+
+    <div class="card seqcard" id="seqCard">
+      <div class="seqhead">
+        <h2>Engine start</h2>
+        <span class="muted small" id="seqInfo">Spins up on air, then asks you before the glow plug comes on.</span>
+        <span class="grow"></span>
+        <button class="btn-start ctlbtn" id="seqStartBtn">▶ Start sequence</button>
+        <button class="btn-glow ctlbtn" id="seqGoBtn" style="display:none">🔥 Start glow plug</button>
+        <button class="btn-abort" id="seqAbortBtn" style="display:none">Abort start</button>
+      </div>
+      <div class="steps" id="seqSteps">
+        <div class="step" data-s="1"><b>1 · Spin up</b>to 4,000 RPM on air</div>
+        <div class="step" data-s="2"><b>2 · Confirm</b>you start the glow plug</div>
+        <div class="step" data-s="3"><b>3 · Preheat</b>glow plug 5 s</div>
+        <div class="step" data-s="4"><b>4 · Pulse fuel</b>solenoid 7 stutters</div>
+        <div class="step" data-s="5"><b>5 · Fuel on</b>starter fuel open</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="card ctl">
+        <h2>RPM</h2>
+        <div class="row"><input id="rpmIn" type="number" inputmode="numeric" value="3000" placeholder="Target RPM">
+          <button class="btn-primary ctlbtn" id="holdBtn">Hold</button></div>
+        <div class="row"><button class="btn-warn ctlbtn" id="tuneBtn" style="flex:1">Autotune at this RPM</button>
+          <button class="ctlbtn" data-cmd="0" style="flex:1">Close air valve</button></div>
+      </div>
+      <div class="card ctl">
+        <h2>Fuel &amp; ignition</h2>
+        <div class="row"><input id="pumpIn" type="number" inputmode="numeric" min="0" max="100" value="20" placeholder="Throttle %">
+          <button class="btn-primary ctlbtn" id="pumpBtn">Set %</button></div>
+        <div class="row"><button class="ctlbtn" data-cmd="pump 0" style="flex:1">Pump off</button>
+          <button class="ctlbtn glow" id="glowBtn" style="flex:1">Glow plug OFF</button></div>
+      </div>
+      <div class="card ctl">
+        <h2>Pressure / velocity</h2>
+        <div class="row"><button class="ctlbtn" data-cmd="pzero" style="flex:1">Zero pressures</button></div>
+        <div class="row"><input id="tIn" type="number" inputmode="decimal" value="30" placeholder="Total temp °C">
+          <button class="ctlbtn" id="tBtn">Set temp</button><button class="ctlbtn" data-cmd="t tc">Use TC</button></div>
+      </div>
+    </div>
+    <div class="locknote" id="lockNote">🔒 Controls are locked. Tap <b>Locked</b> at the top and enter the PIN to control the rig. STOP always works.</div>
+
+    <details class="adv card">
+      <summary>Advanced: PID, auto-zero, deadband</summary>
+      <div class="advgrid">
+        <div class="lab"><span>Kp</span><input id="kpIn" value="0.005"><button class="ctlbtn" data-arg="kp">Set</button></div>
+        <div class="lab"><span>Ki</span><input id="kiIn" value="0.003"><button class="ctlbtn" data-arg="ki">Set</button></div>
+        <div class="lab"><span>Kd</span><input id="kdIn" value="0"><button class="ctlbtn" data-arg="kd">Set</button></div>
+        <div class="lab"><span>Deadband Pa</span><input id="qdbIn" value="8"><button class="ctlbtn" data-arg="qdb">Set</button></div>
+        <div class="btnrow"><button class="ctlbtn" data-cmd="table">Gain table</button><button class="ctlbtn" data-cmd="clear">Clear gains</button></div>
+        <div class="btnrow"><button class="ctlbtn" data-cmd="sched on">Sched on</button><button class="ctlbtn" data-cmd="sched off">Sched off</button></div>
+        <div class="btnrow"><button class="ctlbtn" data-cmd="autozero on">Auto-zero on</button><button class="ctlbtn" data-cmd="autozero off">Auto-zero off</button></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================== GRAPHS ===================== -->
+  <section class="page" id="page-graphs">
+    <div class="gtools">
+      <select id="winSel">
+        <option value="all" selected>Whole run</option>
+        <option value="30">Last 30 s</option>
+        <option value="60">Last 1 min</option>
+        <option value="120">Last 2 min</option>
+        <option value="300">Last 5 min</option>
+        <option value="600">Last 10 min</option>
+      </select>
+      <button id="reloadHist">Reload history</button>
+      <span class="muted small" id="histNote"></span>
+    </div>
+    <div class="card" id="chartWrap"><canvas id="chart"></canvas></div>
+  </section>
+
+  <!-- ===================== LOGGING ===================== -->
+  <section class="page" id="page-logging">
+    <div class="lgrid">
+      <div class="card" id="espRecCard">
+        <h2 id="recTitle">Rig recorder (saved on the ESP32)</h2>
+        <div class="recstate"><span class="dot" id="recDot"></span><span id="recText">Idle</span></div>
+        <div class="kv">
+          <div>File</div><div id="recFile">—</div>
+          <div>Duration</div><div id="recDur">—</div>
+          <div>Size</div><div id="recSize">—</div>
+        </div>
+        <div class="btnrow"><button class="btn-primary" id="logStart">Start recording</button><button id="logStop">Stop</button></div>
+        <label class="switch"><input type="checkbox" id="autoLog" checked> Start automatically when the rig runs, stop 10 s after it goes idle</label>
+        <div style="margin-top:14px" class="small muted">Storage <span id="fsText">—</span></div>
+        <div class="meter"><div id="fsBar"></div></div>
+      </div>
+      <div class="card">
+        <h2>Record on this device</h2>
+        <p class="small muted" style="margin-top:0">Saves a CSV straight to this phone or laptop. Keep this page open while recording.</p>
+        <div class="recstate"><span class="dot" id="bDot"></span><span id="bText">Not recording</span></div>
+        <div class="kv"><div>Rows</div><div id="bRows">0</div></div>
+        <div class="btnrow"><button class="btn-primary" id="bStart">Start</button><button id="bStop">Stop &amp; save CSV</button></div>
+      </div>
+    </div>
+
+    <div class="card usbonly-note" id="usbLogNote">
+      <h2>Saved logs</h2>
+      <p class="muted small" style="margin:0">Connected by USB cable: the ESP32 recorder and its saved logs are only available over Wi-Fi. Use <b>Record on this device</b> to save a CSV here.</p>
+    </div>
+    <div class="card" id="savedLogsCard">
+      <h2>Saved logs</h2>
+      <table>
+        <thead><tr><th>Log</th><th>Size</th><th></th></tr></thead>
+        <tbody id="fileRows"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Event log</h2>
+      <div id="events"></div>
+      <div class="cmdline"><input id="cmdIn" placeholder="Send a command, e.g. tune 5000, pump 30, 7on"><button id="cmdBtn">Send</button></div>
+    </div>
+  </section>
+</main>
+
+<div id="glowDlg">
+  <div class="box">
+    <div style="font-size:40px">🔥</div>
+    <div class="big">Ready for ignition</div>
+    <p id="glowDlgText">Engine is holding 4,000 RPM on air. Start the glow plug? Starter fuel follows 5 s later.</p>
+    <div class="btnrow"><button class="btn-glow" id="glowDlgGo">Start glow plug</button><button class="btn-abort" id="glowDlgAbort">Abort</button></div>
+    <div style="margin-top:10px"><button id="glowDlgLater" class="small">Not yet</button></div>
+  </div>
+</div>
+
+<div id="connDlg">
+  <div class="box">
+    <img alt="GMACH" id="dlgLogo">
+    <b style="font-size:18px">Connect to the rig</b>
+    <div class="opt" id="wifiOpt">
+      <h3>📶 Wi-Fi (ESP32)</h3>
+      <p>Join the <b>GMACH-RIG</b> Wi-Fi first. Several people can watch at once.</p>
+      <div class="row"><input id="ipIn" value="192.168.4.1" spellcheck="false"><button class="btn-primary" id="wifiBtn">Connect</button></div>
+    </div>
+    <div class="opt" id="usbOpt">
+      <h3>🔌 USB cable (Mega)</h3>
+      <p>Plug the Mega into this computer. Chrome or Edge only. Close the Arduino Serial Monitor first.</p>
+      <button class="btn-primary" id="usbBtn" style="width:100%">Choose USB port</button>
+    </div>
+    <div style="text-align:right;margin-top:14px"><button id="dlgClose">Close</button></div>
+  </div>
+</div>
+
+<div id="stopBar"><button id="stopBtn">STOP EVERYTHING</button></div>
+
+<script>
+(() => {
+  "use strict";
+  const KEYS = ["SP","RPM","Open","T","Pt","Ps","q","V","M","Pump","R7","R8","Mode","Cyc","CycN","F","G","Gs","Seq","SeqS","Stut"];
+  const $ = id => document.getElementById(id);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const ok = v => typeof v === "number" && Number.isFinite(v);
+  const fmt0 = v => ok(v) ? Math.round(v).toLocaleString() : "—";
+  const fmt = (v, dp) => ok(v) ? v.toFixed(dp) : "—";
+  const unit = (t, u) => t === "—" ? t : t + '<span class="u">' + u + "</span>";
+  const USB_ONLY = __USBONLY__;          // set by build.py: true for the wired-only file
+  const LAPTOP = !!window.GMACH_LIVE_URL;  // page served by rig_server.py on the laptop
+  const servedByEsp = !USB_ONLY && (location.protocol === "http:" || location.protocol === "https:");
+  let espHost = servedByEsp ? location.hostname : "192.168.4.1";
+  const api = path => (servedByEsp && location.hostname === espHost ? "" : "http://" + espHost) + path;
+
+  // ---------- state ----------
+  let es = null, wsOpen = false, authed = false, linkUp = false;
+  let mode = null;               // "wifi" | "usb"
+  let port = null, reader = null, writer = null, usbReading = false, lastLineMs = 0;
+  let data = [];                 // {t (s since ESP boot), ...fields}
+  let last = null;
+  let peakT = -Infinity;
+  let lastFault = "";
+  let atSpeedSince = 0, runSince = 0, lastMode = 0;
+  let browserRec = null;
+  let logState = null;
+  let replaying = false;
+
+  // ---------- tabs ----------
+  function showPage(p) {
+    document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("active", b.dataset.page === p));
+    document.querySelectorAll(".page").forEach(s => s.classList.toggle("active", s.id === "page-" + p));
+    try { localStorage.setItem("gmachPage", p); } catch (_) {}
+    if (p === "graphs") { sizeChart(); draw(); }
+    if (p === "logging") loadLogs();
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => showPage(b.dataset.page));
+  try { const p = localStorage.getItem("gmachPage"); if (p) showPage(p); } catch (_) {}
+
+  // ---------- connection: Wi-Fi (ESP32) or USB cable (Mega) ----------
+  async function closeAll() {
+    if (es) { es.close(); es = null; }
+    usbReading = false;
+    try { if (reader) await reader.cancel(); } catch (_) {}
+    try { if (writer) { writer.releaseLock(); writer = null; } } catch (_) {}
+    try { if (port) await port.close(); } catch (_) {}
+    port = null;
+    wsOpen = false; linkUp = false;
+  }
+
+  async function connectWifi(ip) {
+    await closeAll();
+    mode = "wifi"; espHost = ip || espHost;
+    try { localStorage.setItem("gmachConn", JSON.stringify({ mode, ip: espHost })); } catch (_) {}
+    data = []; setAuthed(false, true); applyMode();
+    es = new EventSource(LAPTOP ? window.GMACH_LIVE_URL : "http://" + espHost + ":81/");
+    es.onopen = () => {
+      wsOpen = true;
+      fetch(api("/time?ms=" + Date.now() + "&tz=" + (-new Date().getTimezoneOffset()))).catch(() => {});
+      const pin = sessionPin();
+      if (pin) checkPin(pin, true);
+      loadHistory();
+      updateLink();
+    };
+    es.onerror = () => {               // browser retries on its own
+      if (wsOpen) { wsOpen = false; linkUp = false; updateLink(); renderStatus(); }
+    };
+    es.onmessage = ev => handle(ev.data);
+    updateLink(); renderStatus();
+  }
+
+  let usbWanted = false, usbInfo = null, reconnecting = false;
+
+  async function connectUsb() {
+    let p;
+    try { p = await navigator.serial.requestPort(); } catch (e) { return; }
+    await openUsb(p, false);
+  }
+
+  // open a port; quiet = automatic reconnect
+  async function openUsb(p, quiet) {
+    await closeAll();
+    try { await p.open({ baudRate: 115200 }); }
+    catch (e) { if (!quiet) addEvent("FAULT: could not open the USB port - is the Arduino Serial Monitor still open?"); return false; }
+    port = p; mode = "usb"; wsOpen = true; usbWanted = true;
+    try { usbInfo = p.getInfo(); } catch (_) {}
+    if (!quiet) data = [];
+    try { localStorage.setItem("gmachConn", JSON.stringify({ mode: "usb", ip: espHost })); } catch (_) {}
+    writer = port.writable.getWriter();
+    setAuthed(true); applyMode();
+    addEvent(quiet ? "USB reconnected - the Mega restarted, rig is in its safe STOPPED state" : "connected by USB - the Mega restarts, data in ~2 s");
+    updateLink(); renderStatus();
+    usbReadLoop();
+    return true;
+  }
+
+  // find a port this page was already allowed to use (no click needed)
+  async function grantedPort() {
+    try {
+      const ports = await navigator.serial.getPorts();
+      if (!ports.length) return null;
+      if (usbInfo && usbInfo.usbVendorId) {
+        const m = ports.find(q => { const i = q.getInfo(); return i.usbVendorId === usbInfo.usbVendorId && i.usbProductId === usbInfo.usbProductId; });
+        if (m) return m;
+      }
+      return ports[0];
+    } catch (_) { return null; }
+  }
+
+  // keep trying after the cable drops
+  async function autoReconnect() {
+    if (reconnecting || !usbWanted) return;
+    reconnecting = true;
+    while (usbWanted && !(mode === "usb" && wsOpen)) {
+      const p = await grantedPort();
+      if (p && await openUsb(p, true)) break;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    reconnecting = false;
+  }
+  try { navigator.serial.addEventListener("connect", () => { if (usbWanted) autoReconnect(); }); } catch (_) {}
+
+  async function usbReadLoop() {
+    const dec = new TextDecoder();
+    let buf = "";
+    usbReading = true;
+    let lost = false;
+    while (port && port.readable && usbReading) {
+      reader = port.readable.getReader();
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let nl;
+          while ((nl = buf.indexOf("\n")) >= 0) {
+            const line = buf.slice(0, nl).replace(/\r$/, "").trim();
+            buf = buf.slice(nl + 1);
+            usbLine(line);
+          }
+        }
+      } catch (e) {
+        lost = e && (e.name === "NetworkError" || /lost|disconnect/i.test(e.message || ""));
+        if (usbReading && !lost) addEvent("USB read hiccup - " + e.message);
+      }
+      finally { try { reader.releaseLock(); } catch (_) {} reader = null; }
+      if (!usbReading || lost) break;
+      await new Promise(r => setTimeout(r, 50));        // never spin hard on a bad port
+    }
+    if (usbReading) {
+      usbReading = false; wsOpen = false; linkUp = false;
+      try { await port.close(); } catch (_) {}
+      port = null; writer = null;
+      addEvent("FAULT: USB connection lost - reconnecting…");
+      updateLink(); renderStatus();
+      autoReconnect();
+    }
+  }
+
+  function usbLine(line) {
+    if (!line) return;
+    lastLineMs = Date.now();
+    if (line.startsWith("SP:")) {
+      const d = parseStatus(line);
+      if (d) { d.t = performance.now() / 1000; onData(d); }
+    } else {
+      addEvent(line.startsWith(">>") ? line.slice(2).trim() : line);
+    }
+  }
+  setInterval(() => {                  // heartbeat: the Mega goes safe if these stop
+    if (mode === "usb" && writer) writer.write(new TextEncoder().encode("hb\n")).catch(() => {});
+  }, 1000);
+  setInterval(() => {                  // USB link watchdog
+    if (mode === "usb" && wsOpen && linkUp && Date.now() - lastLineMs > 1500) { linkUp = false; updateLink(); renderStatus(); }
+  }, 500);
+
+  async function get(url) {
+    try { const r = await fetch(api(url), { cache: "no-store" }); return { ok: r.ok, text: await r.text() }; }
+    catch (e) { return { ok: false, text: "rig not reachable" }; }
+  }
+  async function cmd(c) {
+    c = String(c).trim();
+    if (!c) return;
+    if (mode === "usb") {
+      if (!writer) { addEvent("not connected"); return; }
+      try { await writer.write(new TextEncoder().encode(c + "\n")); addEvent("> " + c); }
+      catch (e) { addEvent("FAULT: send failed - " + e.message); }
+      return;
+    }
+    const isStop = ["stop", "abort"].includes(c.replace(/\s/g, "").toLowerCase());
+    if (!authed && !isStop) { askPin(); return; }
+    const r = await get("/cmd?c=" + encodeURIComponent(c) + "&pin=" + encodeURIComponent(sessionPin()));
+    if (!r.ok) { addEvent(r.text); if (/locked|PIN/i.test(r.text)) setAuthed(false); }
+  }
+  async function checkPin(pin, quiet) {
+    const r = await get("/auth?pin=" + encodeURIComponent(pin));
+    if (r.ok) { try { sessionStorage.setItem("gmachPin", pin); } catch (_) {} setAuthed(true); }
+    else { setAuthed(false); if (!quiet) addEvent("wrong PIN"); }
+  }
+
+  // show / hide Wi-Fi-only parts
+  function applyMode() {
+    const usb = mode === "usb";
+    $("lockBtn").style.display = (usb || window.GMACH_LOCAL) ? "none" : "";
+    $("espRecCard").style.display = usb ? "none" : "";
+    $("savedLogsCard").style.display = usb ? "none" : "";
+    $("usbLogNote").style.display = usb ? "block" : "none";
+    $("reloadHist").style.display = usb ? "none" : "";
+    $("connDlg").classList.remove("show");
+  }
+  $("dlgLogo").src = document.querySelector("header .logo").src;
+  function openDlg() { $("ipIn").value = espHost; $("connDlg").classList.add("show"); }
+  $("wifiBtn").onclick = () => connectWifi($("ipIn").value.trim() || "192.168.4.1");
+  $("usbBtn").onclick = connectUsb;
+  $("dlgClose").onclick = () => $("connDlg").classList.remove("show");
+  $("linkPill").onclick = openDlg;
+  if (!("serial" in navigator)) $("usbOpt").style.display = "none";
+
+  function handle(msg) {
+    const tag = msg[0], body = msg.slice(2);
+    if (tag === "D") {
+      const bar = body.indexOf("|");
+      const t = parseInt(body.slice(0, bar), 10) / 1000;
+      const d = parseStatus(body.slice(bar + 1));
+      if (!d) return;
+      d.t = t;
+      onData(d);
+    } else if (tag === "M") {
+      addEvent(body);
+    } else if (tag === "L") {
+      replaying = false;
+      try { logState = JSON.parse(body); } catch (_) { return; }
+      linkUp = logState.link;
+      updateLink(); renderLog();
+      if (!linkUp) renderStatus();
+    } else if (tag === "H") {
+      replaying = true;                      // messages that follow are the ESP32's recent backlog
+      $("events").innerHTML = "";
+    }
+  }
+
+  function parseStatus(line) {
+    const d = {};
+    for (const part of line.split(",")) {
+      const i = part.indexOf(":");
+      if (i > 0) d[part.slice(0, i)] = parseFloat(part.slice(i + 1));
+    }
+    return ok(d.RPM) ? d : null;
+  }
+
+  // ---------- incoming data ----------
+  function onData(d) {
+    linkUp = true;
+    d.G100 = d.G === 1 ? 100 : (ok(d.G) ? 0 : NaN);
+    if (data.length && d.t < data[data.length - 1].t - 1) data = [];   // ESP rebooted
+    data.push(d);
+    if (data.length > 60000) data.splice(0, data.length - 60000);
+    last = d;
+    if (ok(d.T)) peakT = Math.max(peakT, d.T);
+    if (browserRec) { browserRec.push([new Date().toISOString(), d.t.toFixed(2), ...KEYS.map(k => ok(d[k]) ? d[k] : "")]); $("bRows").textContent = browserRec.length; }
+
+    // run / at-speed timers
+    const now = Date.now();
+    if (d.Mode > 0 && lastMode === 0) runSince = now;
+    if (d.Mode === 0) runSince = 0;
+    lastMode = d.Mode;
+    const band = Math.max(100, 0.03 * d.SP);
+    if (d.Mode === 1 && d.SP > 0 && Math.abs(d.RPM - d.SP) <= band) { if (!atSpeedSince) atSpeedSince = now; }
+    else atSpeedSince = 0;
+
+    renderOverview(d);
+    renderStatus();
+    updateLink();
+  }
+
+  function renderOverview(d) {
+    $("bigRpm").textContent = fmt0(d.RPM);
+    $("spLine").textContent = d.SP > 0 ? "setpoint " + fmt0(d.SP) : "no setpoint";
+    const maxScale = Math.max(d.SP * 1.25, d.RPM * 1.05, 1000);
+    $("rpmBar").style.width = Math.min(100, d.RPM / maxScale * 100) + "%";
+    const mark = $("spMark");
+    if (d.SP > 0) { mark.style.display = ""; mark.style.left = (d.SP / maxScale * 100) + "%"; } else mark.style.display = "none";
+
+    $("tTemp").innerHTML = unit(fmt(d.T, 1), "°C");
+    $("tTempPk").textContent = ok(d.T) ? "peak " + peakT.toFixed(1) + " °C" : "no reading";
+    $("tVel").innerHTML = unit(fmt(d.V, 1), "m/s");
+    $("tMach").textContent = "Mach " + fmt(d.M, 3);
+    $("tOpen").innerHTML = unit(fmt(d.Open, 1), "°");
+    $("tOpenPct").textContent = ok(d.Open) ? Math.round(d.Open / 90 * 100) + " % open" : "—";
+    $("tPump").innerHTML = unit(fmt(d.Pump, 0), "%");
+    $("tPt").innerHTML = unit(fmt0(d.Pt), "Pa");
+    $("tPs").innerHTML = unit(fmt0(d.Ps), "Pa");
+    $("tPtBar").textContent = ok(d.Pt) ? (d.Pt / 1e5).toFixed(3) + " bar" : "— bar";
+    $("tPsBar").textContent = ok(d.Ps) ? (d.Ps / 1e5).toFixed(3) + " bar" : "— bar";
+    $("tQ").innerHTML = unit(ok(d.q) ? String(Math.round(d.q)) : "—", "Pa");
+    renderSeq(d);
+    const gOn = d.G === 1, gb = $("glowBtn");
+    gb.classList.toggle("on", gOn);
+    gb.textContent = gOn ? "Glow ON · " + (d.Gs || 0) + " s" : "Glow plug OFF";
+    for (const n of [7, 8]) {
+      const on = d["R" + n] === 1, b = $("sol" + n);
+      b.classList.toggle("on", on);
+      b.textContent = n + (on ? " ON" : " OFF");
+    }
+  }
+
+  // ---------- start sequence ----------
+  let lastSeq = 0, glowPromptDismissed = false;
+  function beep() {
+    try {
+      const a = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.25].forEach(t => { const o = a.createOscillator(), g = a.createGain(); o.frequency.value = 880; o.connect(g); g.connect(a.destination);
+        g.gain.setValueAtTime(0.2, a.currentTime + t); o.start(a.currentTime + t); o.stop(a.currentTime + t + 0.15); });
+    } catch (_) {}
+    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (_) {}
+  }
+  function renderSeq(d) {
+    const st = d.Seq || 0;
+    document.querySelectorAll("#seqSteps .step").forEach(el => {
+      const n = +el.dataset.s;
+      el.className = "step" + (st && n < st ? " done" : "") + (n === st ? " now" : "");
+    });
+    $("seqStartBtn").style.display = st ? "none" : "";
+    $("seqAbortBtn").style.display = st ? "" : "none";
+    $("seqGoBtn").style.display = st === 2 ? "" : "none";
+    const info = ["Spins up on air, then asks you before the glow plug comes on.",
+      "Spinning up to 4,000 RPM… " + (d.SeqS || 0) + " s",
+      "Holding 4,000 RPM. Waiting for you to start the glow plug.",
+      "Glow plug preheating… " + Math.max(0, 5 - (d.SeqS || 0)) + " s",
+      "Pulsing starter fuel… " + (d.Stut || 0) + " of 6",
+      "Starter fuel open, glow plug on. Set the pump throttle as needed."][st] || "";
+    $("seqInfo").textContent = info;
+    if (st === 2 && lastSeq !== 2) { glowPromptDismissed = false; beep(); }
+    $("glowDlg").classList.toggle("show", st === 2 && !glowPromptDismissed);
+    lastSeq = st;
+  }
+  $("seqStartBtn").onclick = () => {
+    if (confirm("Start sequence: the air valve spins the engine up to 4,000 RPM, then you'll be asked to start the glow plug. Continue?")) cmd("start");
+  };
+  $("seqGoBtn").onclick = () => cmd("go");
+  $("seqAbortBtn").onclick = () => cmd("abort");
+  $("glowDlgGo").onclick = () => { glowPromptDismissed = true; $("glowDlg").classList.remove("show"); cmd("go"); };
+  $("glowDlgAbort").onclick = () => { glowPromptDismissed = true; $("glowDlg").classList.remove("show"); cmd("abort"); };
+  $("glowDlgLater").onclick = () => { glowPromptDismissed = true; $("glowDlg").classList.remove("show"); };
+
+  function mmss(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  }
+
+  function renderStatus() {
+    const box = $("statusBox");
+    let cls = "st-idle", state = "", sub = "", timer = "";
+    const d = last;
+    if (!mode) { cls = "st-idle"; state = "NOT CONNECTED"; sub = "Tap the connection pill at the top to connect by Wi-Fi or USB."; }
+    else if (!wsOpen) { cls = "st-bad"; state = "OFFLINE"; sub = mode === "usb" ? "USB connection lost - reconnecting automatically…" : (LAPTOP ? "Reconnecting to the rig computer… (same network? server running?)" : "Reconnecting to the rig at " + espHost + "… (are you on the GMACH-RIG Wi-Fi?)"); }
+    else if (!linkUp || !d) { cls = "st-bad"; state = "NO RIG DATA"; sub = mode === "usb" ? "Port open but nothing received. Is the Mega running test_rig?" : (LAPTOP ? "Rig computer is online but the Mega isn't sending. Check the USB cable / isolator." : "ESP32 is online but the Mega isn't sending. Check the TX/RX wiring."); }
+    else if (d.F === 1) { cls = "st-bad"; state = "FAULT"; sub = lastFault || "Air valve closed"; }
+    else if (d.Seq === 1) { cls = "st-info"; state = "STARTING"; sub = "Spinning up to 4,000 RPM on air"; }
+    else if (d.Seq === 2) { cls = "st-warn"; state = "READY FOR GLOW"; sub = "Holding 4,000 RPM. Start the glow plug when ready."; }
+    else if (d.Seq === 3) { cls = "st-warn"; state = "GLOW PREHEAT"; sub = "Starter fuel in " + Math.max(0, 5 - (d.SeqS || 0)) + " s"; }
+    else if (d.Seq === 4) { cls = "st-warn"; state = "FUEL PULSING"; sub = "Starter fuel pulse " + (d.Stut || 0) + " of 6"; }
+    else if (d.Seq === 5) { cls = "st-ok"; state = "STARTER FUEL ON"; sub = "Glow plug on · pump " + Math.round(d.Pump || 0) + "%"; }
+    else if (d.Mode === 2) { cls = "st-warn"; state = "TUNING"; sub = "Opening valve to find " + fmt0(d.SP) + " RPM"; }
+    else if (d.Mode === 3) { cls = "st-warn"; state = "TUNING"; sub = "Relay test, cycle " + (d.Cyc || 0) + " of " + (d.CycN || 6); }
+    else if (d.Mode === 1) {
+      if (atSpeedSince && Date.now() - atSpeedSince >= 2000) {
+        cls = "st-ok"; state = "RPM REACHED"; sub = "Holding " + fmt0(d.SP) + " RPM";
+        timer = "at speed for " + mmss(Date.now() - atSpeedSince);
+      } else {
+        cls = "st-info"; state = d.RPM < d.SP ? "SPINNING UP" : "SETTLING"; sub = "Target " + fmt0(d.SP) + " RPM";
+      }
+    } else {
+      if (d.RPM > 50) { cls = "st-info"; state = "SPINNING DOWN"; sub = "Air valve closed"; }
+      else { cls = "st-idle"; state = "STOPPED"; sub = "Air valve closed"; }
+      const extras = [];
+      if (d.Pump > 0) extras.push("pump at " + Math.round(d.Pump) + "%");
+      if (d.R7 === 1) extras.push("solenoid 7 open");
+      if (d.R8 === 1) extras.push("solenoid 8 open");
+      if (d.G === 1) extras.push("glow plug ON");
+      if (extras.length) sub += " · " + extras.join(", ");
+    }
+    if (runSince && !timer) timer = "running for " + mmss(Date.now() - runSince);
+    box.className = "status " + cls;
+    $("stState").textContent = state;
+    $("stSub").textContent = sub;
+    $("stTimer").textContent = timer;
+  }
+  setInterval(renderStatus, 1000);
+
+  function updateLink() {
+    const p = $("linkPill");
+    const via = mode === "usb" ? "USB" : (LAPTOP ? "Network" : "Wi-Fi");
+    if (!mode) { p.className = "pill warn"; p.textContent = "Connect…"; }
+    else if (!wsOpen) { p.className = "pill bad"; p.textContent = via + " offline"; }
+    else if (!linkUp) { p.className = "pill warn"; p.textContent = via + ": no rig data"; }
+    else { p.className = "pill ok"; p.textContent = "Live · " + via; }
+  }
+
+  // ---------- lock / PIN ----------
+  function sessionPin() { try { return sessionStorage.getItem("gmachPin") || ""; } catch (_) { return ""; } }
+  function askPin() {
+    const pin = prompt("Enter the control PIN");
+    if (pin === null) return;
+    checkPin(pin, false);
+  }
+  function setAuthed(v, silent) {
+    if (window.GMACH_LOCAL) v = true;      // the Pi's own screen at the rig: always in control
+    authed = v;
+    const b = $("lockBtn");
+    b.textContent = v ? "🔓 Unlocked" : "🔒 Locked";
+    b.classList.toggle("unlocked", v);
+    $("lockNote").style.display = v ? "none" : "";
+    document.querySelectorAll(".ctlbtn").forEach(x => x.style.opacity = v ? "" : ".55");
+    if (!v && !silent) { try { sessionStorage.removeItem("gmachPin"); } catch (_) {} }
+  }
+  $("lockBtn").onclick = () => { if (authed) setAuthed(false); else askPin(); };
+
+  // ---------- buttons ----------
+  $("stopBtn").onclick = () => cmd("stop");
+  $("holdBtn").onclick = () => cmd($("rpmIn").value);
+  $("tuneBtn").onclick = () => { if (confirm("Run autotune at " + $("rpmIn").value + " RPM? The valve will swing for about a minute.")) cmd("tune " + $("rpmIn").value); };
+  $("pumpBtn").onclick = () => cmd("pump " + $("pumpIn").value);
+  $("tBtn").onclick = () => cmd("t " + $("tIn").value);
+  $("sol7").onclick = () => cmd(last && last.R7 === 1 ? "7off" : "7on");
+  $("sol8").onclick = () => cmd(last && last.R8 === 1 ? "8off" : "8on");
+  $("glowBtn").onclick = () => cmd(last && last.G === 1 ? "glowoff" : "glowon");
+  document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => {
+    const c = b.dataset.cmd;
+    if (c === "clear" && !confirm("Delete all stored PID gains?")) return;
+    cmd(c);
+  });
+  document.querySelectorAll("[data-arg]").forEach(b => b.onclick = () => cmd(b.dataset.arg + " " + b.previousElementSibling.value));
+  $("rpmIn").addEventListener("keydown", e => { if (e.key === "Enter") $("holdBtn").click(); });
+  $("pumpIn").addEventListener("keydown", e => { if (e.key === "Enter") $("pumpBtn").click(); });
+  const sendFree = () => { cmd($("cmdIn").value); $("cmdIn").value = ""; };
+  $("cmdBtn").onclick = sendFree;
+  $("cmdIn").addEventListener("keydown", e => { if (e.key === "Enter") sendFree(); });
+
+  // ---------- events ----------
+  function addEvent(text) {
+    const isFault = /FAULT|NOT FOUND|rejected|failed/i.test(text);
+    if (isFault && /FAULT/.test(text)) lastFault = text.replace(/^FAULT:\s*/, "");
+    const el = $("events");
+    const div = document.createElement("div");
+    div.className = isFault ? "fault" : (text.startsWith(">") ? "cmd" : "");
+    const t = new Date();
+    div.textContent = (replaying ? "earlier " : t.toTimeString().slice(0, 8)) + "  " + text;
+    el.appendChild(div);
+    while (el.childElementCount > 400) el.removeChild(el.firstChild);
+    el.scrollTop = el.scrollHeight;
+    if (isFault) renderStatus();
+  }
+
+  // ---------- history ----------
+  async function loadHistory() {
+    try {
+      if (mode !== "wifi") return;
+      const r = await fetch(api("/history"), { cache: "no-store" });
+      const txt = await r.text();
+      const lines = txt.trim().split("\n");
+      const head = lines.shift().split(",");
+      const hist = [];
+      for (const ln of lines) {
+        const v = ln.split(",");
+        const d = { t: parseInt(v[0], 10) / 1000 };
+        for (let i = 1; i < head.length; i++) d[head[i]] = v[i] === "" ? NaN : parseFloat(v[i]);
+        d.G100 = d.G === 1 ? 100 : (ok(d.G) ? 0 : NaN);
+        hist.push(d);
+      }
+      if (hist.length) {
+        const lastHist = hist[hist.length - 1].t;
+        data = hist.concat(data.filter(d => d.t > lastHist));
+        $("histNote").textContent = "history: " + hist.length + " points from the ESP32";
+      }
+      draw();
+    } catch (e) { $("histNote").textContent = "could not load history"; }
+  }
+  $("reloadHist").onclick = loadHistory;
+
+  // ---------- chart ----------
+  const canvas = $("chart"), ctx = canvas.getContext("2d");
+  const PANELS = [
+    { title: "RPM", series: [{ k: "SP", label: "Setpoint", c: "--sp", dash: [6, 4], skipZero: true }, { k: "RPM", label: "RPM", c: "--rpm" }], min0: true, span: 100 },
+    { title: "Actuators", series: [{ k: "Open", label: "Air valve (°)", c: "--open" }, { k: "Pump", label: "Pump (%)", c: "--pump" }, { k: "G100", label: "Glow (on)", c: "--sp", dash: [2, 3] }], fixed: [0, 100] },
+    { title: "Temperature (°C)", series: [{ k: "T", label: "Thermocouple", c: "--temp" }], span: 5 },
+    { title: "Pressure (Pa gauge)", series: [{ k: "Pt", label: "Total", c: "--pt" }, { k: "Ps", label: "Static", c: "--ps" }, { k: "q", label: "q = Pt − Ps", c: "--q", dash: [4, 3] }], span: 50 },
+    { title: "Velocity (m/s)", series: [{ k: "V", label: "Velocity", c: "--vel" }], min0: true, span: 10 },
+  ];
+  let panelH = 170;
+
+  function sizeChart() {
+    const w = canvas.parentElement.clientWidth - 12;
+    panelH = w < 600 ? 150 : 170;
+    const h = PANELS.length * (panelH + 36) + 26;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.height = h + "px";
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function niceStep(range, target) {
+    const raw = range / Math.max(1, target);
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw / mag;
+    return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+  }
+  function tick(v, step) {
+    if (Math.abs(v) >= 10000) return (v / 1000).toFixed(step >= 1000 ? 0 : 1) + "k";
+    return v.toFixed(step >= 1 ? 0 : Math.min(3, Math.ceil(-Math.log10(step))));
+  }
+  function tLabel(s) {
+    if (s < 120) return Math.round(s) + "s";
+    const m = Math.floor(s / 60), r = Math.round(s % 60);
+    return m + ":" + String(r).padStart(2, "0");
+  }
+
+  function draw() {
+    if (!$("page-graphs").classList.contains("active")) return;
+    const W = canvas.width / (window.devicePixelRatio || 1);
+    const H = canvas.height / (window.devicePixelRatio || 1);
+    ctx.clearRect(0, 0, W, H);
+    const sel = $("winSel").value;
+    const t0 = data.length ? data[0].t : 0;
+    const tNow = data.length ? data[data.length - 1].t : 0;
+    let tMin, tMax;
+    if (sel === "all") { tMin = t0; tMax = Math.max(t0 + 10, tNow); }
+    else { const w = +sel; tMax = Math.max(tNow, t0 + w); tMin = tMax - w; }
+    const pts = data.filter(d => d.t >= tMin);
+    const L = 52, R = 10, plotW = W - L - R;
+    const stride = Math.max(1, Math.floor(pts.length / (plotW * 1.5)));
+
+    PANELS.forEach((p, i) => {
+      const y = 26 + i * (panelH + 36), h = panelH;
+      let lo, hi;
+      if (p.fixed) [lo, hi] = p.fixed;
+      else {
+        lo = Infinity; hi = -Infinity;
+        for (const d of pts) for (const s of p.series) { const v = d[s.k]; if (ok(v) && !(s.skipZero && !(v > 0))) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+        if (!Number.isFinite(lo)) { lo = 0; hi = p.span; }
+        if (p.min0) lo = Math.min(0, lo);
+        if (hi - lo < p.span) { const mid = (hi + lo) / 2; lo = p.min0 ? lo : mid - p.span / 2; hi = lo + Math.max(p.span, hi - lo); }
+        const pad = (hi - lo) * 0.08; hi += pad; if (!p.min0) lo -= pad;
+      }
+      // grid
+      ctx.save();
+      ctx.font = "11px -apple-system, Segoe UI, sans-serif";
+      ctx.strokeStyle = css("--grid"); ctx.fillStyle = css("--muted"); ctx.lineWidth = 1;
+      const ys = niceStep(hi - lo, h / 30);
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      for (let v = Math.ceil(lo / ys) * ys; v <= hi + 1e-9; v += ys) {
+        const py = y + h - (v - lo) / (hi - lo) * h;
+        ctx.beginPath(); ctx.moveTo(L, py + .5); ctx.lineTo(L + plotW, py + .5); ctx.stroke();
+        ctx.fillText(tick(v, ys), L - 6, py);
+      }
+      const xs = niceStep(tMax - tMin, plotW / 80);
+      ctx.textAlign = "center"; ctx.textBaseline = "top";
+      for (let v = Math.ceil((tMin - t0) / xs) * xs + t0; v <= tMax + 1e-9; v += xs) {
+        const px = L + (v - tMin) / (tMax - tMin) * plotW;
+        ctx.beginPath(); ctx.moveTo(px + .5, y); ctx.lineTo(px + .5, y + h); ctx.stroke();
+        if (i === PANELS.length - 1) ctx.fillText(tLabel(v - t0), px, y + h + 4);
+      }
+      // title + legend
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      ctx.font = "600 13px -apple-system, Segoe UI, sans-serif"; ctx.fillStyle = css("--text");
+      ctx.fillText(p.title, L, y - 8);
+      let lx = L + ctx.measureText(p.title).width + 14;
+      ctx.font = "12px -apple-system, Segoe UI, sans-serif";
+      for (const s of p.series) {
+        if (lx > W - 60) break;
+        ctx.strokeStyle = css(s.c); ctx.lineWidth = 2.5; ctx.setLineDash(s.dash || []);
+        ctx.beginPath(); ctx.moveTo(lx, y - 12); ctx.lineTo(lx + 14, y - 12); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = css("--muted"); ctx.fillText(s.label, lx + 18, y - 8);
+        lx += 30 + ctx.measureText(s.label).width;
+      }
+      // lines
+      ctx.beginPath(); ctx.rect(L, y, plotW, h); ctx.clip();
+      for (const s of p.series) {
+        ctx.strokeStyle = css(s.c); ctx.lineWidth = 1.8; ctx.setLineDash(s.dash || []);
+        ctx.beginPath();
+        let pen = false;
+        for (let j = 0; j < pts.length; j += stride) {
+          const d = (j + stride >= pts.length) ? pts[pts.length - 1] : pts[j];
+          let v = d[s.k];
+          if (s.skipZero && !(v > 0)) v = NaN;
+          if (!ok(v)) { pen = false; continue; }
+          const px = L + (d.t - tMin) / (tMax - tMin) * plotW;
+          const py = y + h - (v - lo) / (hi - lo) * h;
+          if (pen) ctx.lineTo(px, py); else { ctx.moveTo(px, py); pen = true; }
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+    if (!data.length) {
+      ctx.fillStyle = css("--muted"); ctx.font = "14px -apple-system, Segoe UI, sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("Waiting for data from the rig…", W / 2, 26 + panelH / 2);
+    }
+  }
+  setInterval(draw, 500);
+  window.addEventListener("resize", () => { sizeChart(); draw(); });
+  $("winSel").onchange = draw;
+  sizeChart();
+
+  // ---------- logging ----------
+  function bytes(n) { return n > 1048576 ? (n / 1048576).toFixed(2) + " MB" : (n / 1024).toFixed(1) + " KB"; }
+  function renderLog() {
+    const s = logState; if (!s) return;
+    $("recDot").classList.toggle("rec", s.rec);
+    $("recText").textContent = s.rec ? "Recording" : "Idle";
+    $("recFile").textContent = s.rec ? s.file : "—";
+    $("recDur").textContent = s.rec ? mmss(s.secs * 1000) : "—";
+    $("recSize").textContent = s.rec ? bytes(s.size) : "—";
+    $("autoLog").checked = s.auto;
+    $("fsText").textContent = bytes(s.used) + " of " + bytes(s.total) + " used";
+    $("fsBar").style.width = (s.total ? s.used / s.total * 100 : 0) + "%";
+    $("logStart").disabled = s.rec; $("logStop").disabled = !s.rec;
+  }
+  $("logStart").onclick = async () => { await get("/log?a=start"); loadLogs(); };
+  $("logStop").onclick = async () => { await get("/log?a=stop"); loadLogs(); };
+  $("autoLog").onchange = e => get("/log?a=" + (e.target.checked ? "autoon" : "autooff"));
+
+  function prettyName(n) {
+    const m = n.match(/^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})/);
+    if (!m) return n;
+    const d = new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+    return d.toLocaleDateString(undefined, { day: "numeric", month: "short" }) + ", " + d.toTimeString().slice(0, 8);
+  }
+  async function loadLogs() {
+    try {
+      if (mode !== "wifi") return;
+      const r = await fetch(api("/logs"), { cache: "no-store" });
+      const j = await r.json();
+      logState = j.state; renderLog();
+      const rows = j.files.sort((a, b) => b.n.localeCompare(a.n)).map(f => {
+        const live = j.state.rec && j.state.file === f.n;
+        return `<tr><td><b>${prettyName(f.n)}</b>${live ? ' <span class="live">● REC</span>' : ""}<div class="small muted">${f.n}</div></td>
+          <td>${bytes(f.s)}</td>
+          <td class="actions"><a href="${api("/dl?f=" + encodeURIComponent(f.n))}" download>Download</a>
+          <button data-del="${f.n}" ${live ? "disabled" : ""}>Delete</button></td></tr>`;
+      });
+      $("fileRows").innerHTML = rows.length ? rows.join("") : '<tr><td colspan="3" class="muted">No logs yet.</td></tr>';
+      document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => delLog(b.dataset.del));
+    } catch (e) {
+      $("fileRows").innerHTML = '<tr><td colspan="3" class="muted">Could not load the log list.</td></tr>';
+    }
+  }
+  async function delLog(n) {
+    if (!confirm("Delete " + n + "? This can't be undone.")) return;
+    let pin = sessionPin();
+    if (!pin) { pin = prompt("Enter the control PIN to delete logs"); if (pin === null) return; }
+    const r = await fetch(api("/delete?f=" + encodeURIComponent(n) + "&pin=" + encodeURIComponent(pin)));
+    if (!r.ok) alert(await r.text());
+    loadLogs();
+  }
+  setInterval(() => { if ($("page-logging").classList.contains("active")) loadLogs(); }, 5000);
+
+  // browser recording
+  $("bStart").onclick = () => {
+    browserRec = [];
+    $("bDot").classList.add("rec"); $("bText").textContent = "Recording"; $("bRows").textContent = "0";
+  };
+  $("bStop").onclick = () => {
+    if (!browserRec) return;
+    const head = ["time_iso", "esp_t_s", "setpoint_rpm", "rpm", "air_valve_deg", "temp_c", "pt_pa", "ps_pa", "q_pa",
+      "velocity_ms", "mach", "pump_pct", "sol7", "sol8", "mode", "tune_cycle", "tune_cycles", "fault", "glow", "glow_s", "start_step", "start_step_s", "fuel_pulses"];
+    const blob = new Blob([[head, ...browserRec].map(r => r.join(",")).join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "gmach-" + new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "") + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    browserRec = null;
+    $("bDot").classList.remove("rec"); $("bText").textContent = "Saved";
+  };
+
+  // test hook
+  window.__gmach = { handle, draw, showPage };
+  setAuthed(false, true);
+  if (LAPTOP) $("recTitle").textContent = "Rig recorder (saved on the rig computer)";
+  if (window.GMACH_LOCAL) $("lockBtn").style.display = "none";
+  if (USB_ONLY) {
+    $("wifiOpt").style.display = "none";
+    (async () => {                                       // reuse the port from last time without a click
+      const p = await grantedPort();
+      if (!(p && await openUsb(p, false))) openDlg();
+    })();
+  }
+  else if (servedByEsp) connectWifi(location.hostname);  // page came from the ESP32: just go
+  else {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem("gmachConn") || "null"); } catch (_) {}
+    if (saved && saved.ip) espHost = saved.ip;
+    if (saved && saved.mode === "wifi") connectWifi(espHost);
+    else openDlg();                                     // USB needs a click (browser rule)
+  }
+  updateLink(); renderStatus();
+})();
+</script>
+</body>
+</html>

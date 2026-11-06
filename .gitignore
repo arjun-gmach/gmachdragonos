@@ -1,0 +1,12 @@
+# local settings (control PIN) - never commit
+config.json
+*.local.json
+# run logs stay on the Pi
+rig_logs/
+*.csv
+# Python / editors / OS
+__pycache__/
+*.pyc
+.vscode/
+.DS_Store
+Thumbs.db
