@@ -47,7 +47,7 @@ Relay board is active-low. Flyback diodes (1N4007) across each solenoid coil, st
    On GitHub: repository → **Settings → Deploy keys → Add deploy key**, paste the key, leave *write access* off. Then:
    ```bash
    printf 'Host github.com\n  IdentityFile ~/.ssh/gmach_deploy\n' >> ~/.ssh/config
-   git clone git@github.com:OWNER/REPO.git ~/gmach-rig
+   git clone git@github.com:arjun-gmach/gmachdragonos.git ~/gmach-rig
    ```
 3. Install and reboot:
    ```bash
