@@ -54,6 +54,25 @@ Exec=$PI_DIR/gmach-kiosk.sh
 X-GNOME-Autostart-enabled=true
 DESK
 
+echo "== GMACH boot splash and desktop background"
+if [ -d /usr/share/plymouth/themes/pix ]; then
+  [ -f /usr/share/plymouth/themes/pix/splash.png.orig ] || sudo cp /usr/share/plymouth/themes/pix/splash.png /usr/share/plymouth/themes/pix/splash.png.orig 2>/dev/null || true
+  sudo cp "$PI_DIR/splash.png" /usr/share/plymouth/themes/pix/splash.png
+  if [ -n "$(ls /boot/firmware/initramfs* 2>/dev/null)" ] && command -v update-initramfs >/dev/null; then
+    sudo update-initramfs -u || true          # boot splash lives in the initramfs on newer images
+  fi
+fi
+# desktop background (works over SSH too: edit the desktop's config files directly)
+mkdir -p "$HOME/.config/pcmanfm/LXDE-pi"
+for n in 0 1; do
+  f="$HOME/.config/pcmanfm/LXDE-pi/desktop-items-$n.conf"
+  if [ -f "$f" ] && grep -q '^wallpaper=' "$f"; then
+    sed -i "s#^wallpaper=.*#wallpaper=$PI_DIR/splash.png#; s#^wallpaper_mode=.*#wallpaper_mode=crop#" "$f"
+  else
+    printf '[*]\nwallpaper_mode=crop\nwallpaper=%s\ndesktop_bg=#000000\nshow_trash=0\nshow_mounts=0\n' "$PI_DIR/splash.png" >> "$f"
+  fi
+done
+
 echo "== auto-login to the desktop, no screen blanking"
 sudo raspi-config nonint do_boot_behaviour B4 || true
 sudo raspi-config nonint do_blanking 1 || true

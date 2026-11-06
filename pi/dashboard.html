@@ -220,6 +220,13 @@
   body.kiosk #events { height: 100%; font-size: 16px; }
   body.kiosk .k-pane[data-k="events"] .card { height: 100%; }
 
+  /* kiosk boot video */
+  #introVid { position: fixed; inset: 0; z-index: 50; background: #000; display: none; align-items: center; justify-content: center;
+    transition: opacity .7s ease; }
+  #introVid.show { display: flex; }
+  #introVid.fade { opacity: 0; }
+  #introVid video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+
   /* connection chooser */
   #connDlg { position: fixed; inset: 0; z-index: 20; background: rgba(17,24,39,.45); display: none;
     align-items: center; justify-content: center; padding: 16px; }
@@ -411,6 +418,8 @@
     </div>
   </section>
 </main>
+
+<div id="introVid"><video id="introEl" muted playsinline preload="auto"></video></div>
 
 <div id="loginDlg">
   <form id="loginForm" autocomplete="on">
@@ -1238,6 +1247,20 @@
       document.body.classList.toggle("kcompact", b.dataset.k !== "readings");
       if (b.dataset.k === "graphs") requestAnimationFrame(() => { sizeChart(); draw(); });
     });
+    // boot video: plays once when the kiosk opens, then fades into the dashboard
+    const iv = $("introVid"), ve = $("introEl");
+    let introDone = false;
+    const endIntro = () => {
+      if (introDone) return; introDone = true;
+      iv.classList.add("fade");
+      setTimeout(() => { iv.classList.remove("show"); ve.removeAttribute("src"); ve.load(); }, 750);
+    };
+    iv.classList.add("show");
+    ve.onended = endIntro;
+    ve.onerror = endIntro;
+    setTimeout(endIntro, 12000);                  // never get stuck on the intro
+    ve.src = "/intro.mp4";
+    ve.play().catch(endIntro);
     const tick = () => $("kClock").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     tick(); setInterval(tick, 1000);
   }

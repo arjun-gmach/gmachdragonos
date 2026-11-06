@@ -16,4 +16,5 @@ exec "$BROWSER" \
   --kiosk --noerrdialogs --disable-infobars --no-first-run \
   --disable-session-crashed-bubble --disable-features=Translate \
   --password-store=basic --check-for-update-interval=31536000 \
+  --autoplay-policy=no-user-gesture-required \
   http://localhost:8080/

@@ -416,6 +416,7 @@ class Handler(BaseHTTPRequestHandler):
             "/": self.page, "/live": self.live, "/history": self.history, "/logs": self.logs,
             "/dl": self.download, "/delete": self.delete, "/cmd": self.cmd, "/me": self.me,
             "/time": lambda q: self.reply(200, "ok"), "/log": self.logctl,
+            "/intro.mp4": self.intro,
         }.get(u.path)
         if route:
             route(q)
@@ -436,6 +437,35 @@ class Handler(BaseHTTPRequestHandler):
             self.logout()
         else:
             self.reply(404, "not found")
+
+    # ---- boot video for the kiosk (supports Range requests for the browser's video player) ----
+    def intro(self, q):
+        path = os.path.join(HERE, "boot.mp4")
+        if not os.path.exists(path):
+            return self.reply(404, "no boot video")
+        size = os.path.getsize(path)
+        start, end = 0, size - 1
+        m = re.match(r"bytes=(\d*)-(\d*)", self.headers.get("Range", ""))
+        if m and (m.group(1) or m.group(2)):
+            if m.group(1):
+                start = int(m.group(1))
+                end = int(m.group(2)) if m.group(2) else size - 1
+            else:
+                start = max(0, size - int(m.group(2)))
+            end = min(end, size - 1)
+        with open(path, "rb") as f:
+            f.seek(start)
+            data = f.read(end - start + 1)
+        partial = bool(m and (m.group(1) or m.group(2)))
+        self.send_response(206 if partial else 200)
+        self.send_header("Content-Type", "video/mp4")
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(len(data)))
+        if partial:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Cache-Control", "max-age=3600")
+        self.end_headers()
+        self.wfile.write(data)
 
     # ---- login ----
     def me(self, q):
@@ -480,7 +510,8 @@ class Handler(BaseHTTPRequestHandler):
     def page(self, q):
         with open(os.path.join(HERE, "dashboard.html"), encoding="utf-8") as f:
             html = f.read()
-        kiosk = self.is_local() and "operator" not in q        # http://localhost:8080/?operator = normal page
+        query = urllib.parse.urlparse(self.path).query        # http://localhost:8080/?operator = normal page
+        kiosk = self.is_local() and "operator" not in query
         inject = "<script>window.GMACH_LIVE_URL='/live';window.GMACH_KIOSK=%s;</script>" % (
             "true" if kiosk else "false")
         self.reply(200, html.replace("</head>", inject + "</head>", 1), "text/html; charset=utf-8")
