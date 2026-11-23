@@ -1,0 +1,692 @@
+﻿						Symbol﻿	Unit﻿	Value﻿
+PROJECT: turbine2.3								
+	File version							2025 R1.2
+	Actual power output					PD	[kW]	56.3
+	Isentropic efficiency total-total					ηtt	[%]	53.8
+	Isentropic efficiency total-static					ηts	[%]	46.4
+	Polytropic efficiency total-total					ηpol	[%]	51.2
+	Information							
+		Project type						Gas Turbine
+		Title						
+		Classification						
+		Author						
+		Comment						
+		Creation date						04 Aug 2026, 15:28
+		Last modification						23 Nov 2026, 11:26
+	Global setup							
+		Gas model						Perfect
+		Sonic speed (total)				at	[m/s]	612
+		Total density				ρt	[kg/m³]	1.127
+		Static pressure				p2	[bar]	1.2115
+		Static temperature (isent.)				T2is	[°C]	490.2
+		Machine design point						
+			Mass flow			ṁ	[kg/s]	0.25
+			Revolutions			n	[/min]	1.2E5
+			Addt’l. Total-to-static efficiency			ηts+	[%]	100
+			Rotation direction					Right (clockwise)
+			Pressure ratio (total-static)			πts	[-]	2.6
+			Specific speed (EU)			nq	[-]	29.2
+		Fluid						
+			Name					Air
+			Description					
+			Symbol					N2;O2
+			Compressibility factor			Z	[-]	1
+			Gas constant			R	[J/(kg·K)]	287.1
+			Critical pressure			pc	[bar]	37.2
+			Kinematic viscosity			ν	[mm²/s]	15.35
+			Thermal conductivity			λ	[W/(m·K)]	0.0262
+			Molar weight			M	[kg/mol]	0.02896
+		Inlet conditions						
+			Pressure (total)			pt	[bar]	3.15
+			Temperature (total)			Tt	[°C]	700
+	 1: [Stator_1]							
+		Active						✔
+		Neighbor distance at hub					[mm]	0
+		Neighbor distance at shroud					[mm]	0
+		Component flow properties						
+			Inlet - Flow properties					
+				Meridional velocity		cm1	[m/s]	121.7
+				Abs. circumferential velocity		cu1	[m/s]	0
+				Absolute velocity		c1	[m/s]	121.7
+				Absolute flow angle		α1	[°]	90
+				Density		ρ1	[kg/m³]	1.105
+				Static pressure		p1	[bar]	3.0673
+				Temperature		T1	[°C]	693.4
+				Total density		ρt1	[kg/m³]	1.127
+				Total pressure		pt1	[bar]	3.15
+				Total temperature		Tt1	[°C]	700
+				Mach Number		Ma1	[-]	0.2
+			Outlet - Flow properties					
+				Meridional velocity		cm2	[m/s]	180.3
+				Abs. circumferential velocity		cu2	[m/s]	505.9
+				Absolute velocity		c2	[m/s]	537.1
+				Absolute flow angle		α2	[°]	19.6
+				Density		ρ2	[kg/m³]	0.746
+				Static pressure		p2	[bar]	1.8113
+				Temperature		T2	[°C]	572.4
+				Total density		ρt2	[kg/m³]	1.127
+				Total pressure		pt2	[bar]	3.15
+				Total temperature		Tt2	[°C]	700
+				Mach Number		Ma2	[-]	0.941
+		Main dimensions						
+			Losses					Tot. pressure difference
+			Tot. pressure loss			Δpt	[bar]	0
+			Setup					
+				Unshrouded				-
+				Splitter blades				-
+				Material density		ρ	[kg/m³]	7750
+				Inflow swirl				Upstream swirl
+				Stator type				Axial
+				With blades				✔
+			General					
+				Critical Area		Acrit	[mm²]	621.9
+				Diameter ratio		dm2/dm1	[-]	1
+				Width ratio		b2/b1	[-]	1
+				Area ratio		A2/A1	[-]	1
+				Pressure recovery coefficient		cp	[-]	-12.236
+				Isentropic velocity ratio		ηD	[%]	100
+			Extent					
+				Direction hub				Axial
+				Direction shroud				Axial
+				Hub extent		Δz, Δr	[mm; mm]	[15; 0]
+				Shroud extent		Δz, Δr	[mm; mm]	[15; 0]
+			Inlet					
+				Hub point		z, r	[mm; mm]	[-15; 31.25]
+				Shroud point		z, r	[mm; mm]	[-15; 39.6]
+				Center point		z, r	[mm; mm]	[-15; 35.425]
+				Center line diameter		d	[mm]	70.85
+				Area		A	[mm²]	1858.6
+				Hub diameter		dH1	[mm]	62.5
+				Shroud diameter		dS1	[mm]	79.2
+				Average diameter		dM1	[mm]	70.85
+				Width		b1	[mm]	8.35
+				Area		A1	[mm²]	1858.6
+			Outlet					
+				Hub point		z, r	[mm; mm]	[0; 31.25]
+				Shroud point		z, r	[mm; mm]	[0; 39.6]
+				Center point		z, r	[mm; mm]	[0; 35.425]
+				Center line diameter		d	[mm]	70.85
+				Area		A	[mm²]	1858.6
+				Offset hub		Δz, Δr	[mm; mm]	[0; 0]
+				Offset shroud		Δz, Δr	[mm; mm]	[0; 0]
+				Offset center		Δz, Δr	[mm; mm]	[0; 0]
+				Hub diameter		dH2	[mm]	62.5
+				Shroud diameter		dS2	[mm]	79.2
+				Average diameter		dM2	[mm]	70.85
+				Width		b2	[mm]	8.35
+				Area		A2	[mm²]	1858.6
+				Diameter ratio		d-Ratio	[-]	1
+				Width ratio		b-Ratio	[-]	1
+				Area ratio		A-Ratio	[-]	1
+		Meridional contour						
+			Leading edge fixed on inlet					-
+			Trailing edge fixed on outlet					-
+			Axial extension max.			ΔzMax	[mm]	15
+			Radial extension max.			ΔrMax	[mm]	8.35
+			Hub Contour Controls			z, r	[mm; mm]	[[-15; 31.25], [0; 31.25]]
+			Shroud Contour Controls			z, r	[mm; mm]	[[-15; 39.6], [0; 39.6]]
+			Inlet angle				[°]	90
+			Outlet angle				[°]	90
+			Leading Edge					
+				Point at hub (rel.)		u	[%]	3.8
+				Point at shroud (rel.)		u	[%]	3.8
+				Point at hub (abs.)			[mm; mm]	[-14.423; 31.25]
+				Point at shroud (abs.)			[mm; mm]	[-14.423; 39.6]
+				Width circle diameter		b	[mm]	8.35
+				Width hub to shroud		b*	[mm]	8.35
+				Diameter at mid span		d	[mm]	70.85
+				Diameter average		d*	[mm]	70.85
+			Trailing Edge					
+				Point at hub (rel.)		u	[%]	96.2
+				Point at shroud (rel.)		u	[%]	96.2
+				Point at hub (abs.)			[mm; mm]	[-0.577; 31.25]
+				Point at shroud (abs.)			[mm; mm]	[-0.577; 39.6]
+				Width circle diameter		b	[mm]	8.35
+				Width hub to shroud		b*	[mm]	8.35
+				Diameter at mid span		d	[mm]	70.85
+				Diameter average		d*	[mm]	70.85
+		Blade properties						
+			Number of blades					17
+			Number of spans					3
+			Blade shape					Free-form 3D
+			Blockage mode					Tangential
+			Automatic αBLE					✔
+			Beta interpolation mode LE					Constant
+			Beta interpolation mode TE					User defined
+			Main blade					
+				Thickness LE@hub		sLEH	[mm]	1.5
+				Thickness LE@shroud		sLES	[mm]	1.5
+				Thickness TE@hub		sTEH	[mm]	0.5
+				Thickness TE@shroud		sTES	[mm]	0.5
+				Blade angle leading edge		αBLE	[°]	[90]
+				Blade angle trailing edge		αBTE	[°]	[18.2, 20, 22.4]
+				Abs. deceleration		c2/c1	[-]	[]
+				Abs. deflection angle		ΔαF	[°]	[]
+			Span distribution					
+				CurveMode				Straight line
+			Incidence					
+				Definition				Shockless flowrate
+				Ratio hub		RQHub	[%]	100
+				Ratio shroud		RQShr	[%]	100
+			Slip					
+				Slip model				User defined
+				Angle hub		δHub	[°]	0
+				Angle shroud		δShr	[°]	0
+			Suction side [hub, shroud]					
+				Angle of absolute flow		αFS	[°]	[90, 90]
+				Meridional component of absolute velocity		cmS	[m/s]	[121.7, 121.7]
+				Radial component of absolute velocity		crS	[m/s]	[0, 0]
+				Axial component of absolute velocity		caxS	[m/s]	[121.7, 121.7]
+				Circumferential component of absolute velocity		cuS	[m/s]	[0, 0]
+				Absolute velocity		cS	[m/s]	[121.7, 121.7]
+			Leading edge (outside blade passage) [hub, shroud]					
+				Angle of absolute flow		αF0	[°]	[90, 90]
+				Meridional component of absolute velocity		cm0	[m/s]	[121.7, 121.7]
+				Radial component of absolute velocity		cr0	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax0	[m/s]	[121.7, 121.7]
+				Circumferential component of absolute velocity		cu0	[m/s]	[0, 0]
+				Absolute velocity		c0	[m/s]	[121.7, 121.7]
+			Leading edge (inside blade passage) [hub, shroud]					
+				Blade blockage		τ1	[-]	[1.149, 1.114]
+				Incidence		i	[°]	[0, 0]
+				Angle of absolute flow		αF1	[°]	[90, 90]
+				Meridional component of absolute velocity		cm1	[m/s]	[139.9, 135.6]
+				Radial component of absolute velocity		cr1	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax1	[m/s]	[139.9, 135.6]
+				Circumferential component of absolute velocity		cu1	[m/s]	[0, 0]
+				Absolute velocity		c1	[m/s]	[139.9, 135.6]
+			Trailing edge (inside blade passage) [hub, shroud]					
+				Blade blockage		τ2	[-]	[1.161, 1.099]
+				Deviation		δ	[°]	[0, 0]
+				Angle of absolute flow		αF2	[°]	[18.2, 22.4]
+				Meridional component of absolute velocity		cm2	[m/s]	[190.5, 180.2]
+				Radial component of absolute velocity		cr2	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax2	[m/s]	[190.5, 180.2]
+				Circumferential component of absolute velocity		cu2	[m/s]	[581.1, 438.2]
+				Absolute velocity		c2	[m/s]	[611.5, 473.8]
+			Trailing edge (outside blade passage) [hub, shroud]					
+				Angle of absolute flow		αF3	[°]	[15.8, 20.5]
+				Meridional component of absolute velocity		cm3	[m/s]	[164, 164]
+				Radial component of absolute velocity		cr3	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax3	[m/s]	[164, 164]
+				Circumferential component of absolute velocity		cu3	[m/s]	[581.1, 438.2]
+				Absolute velocity		c3	[m/s]	[603.8, 467.9]
+		Blade mean lines						
+			Design mode					Conformal mapping
+			Blade Passage					
+				Max. sphere radius			[mm]	3.669
+				Leading Edge				
+					Cross section area		[mm²]	105.42
+					Distance blade-to-blade		[mm]	12.557
+					Distance hub-to-shroud		[mm]	8.367
+				Trailing Edge				
+					Cross section area		[mm²]	61.6
+					Distance blade-to-blade		[mm]	7.337
+					Distance hub-to-shroud		[mm]	8.408
+				Throat				
+					Cross section area		[mm²]	61.6
+					Distance blade-to-blade		[mm]	7.337
+					Distance hub-to-shroud		[mm]	8.408
+			Blade					
+				Coupled mean lines				✔
+				Stacking position			[%]	0
+				Wrap angle		Δφ	[°]	19.1
+				Leading edge position		φLE	[°]	[0, 0, 0]
+				Trailing edge position		φTE	[°]	[19.1, 19.1, 19.1]
+				Lean angle leading edge		λLE	[°]	[0, 0, 0]
+				Rake angle trailing edge		λTE	[°]	[1.1, 0.6, 0.3]
+				Rake angle at LE		R	[°]	0
+				Rake angle at TE		R	[°]	0
+				Overlapping		Δφ/t	[-]	0.902
+				Meanline 1 (Hub)				
+					Leading edge position	φLE	[°]	0
+					Trailing edge position	φTE	[°]	19.1
+					Wrap angle	Δφ	[°]	19.1
+					Overlap angle	φB	[°]	-2.1
+					Blade angle leading edge	αBLE	[°]	90
+					Blade angle trailing edge	αBTE	[°]	18.2
+				Meanline 2				
+					Leading edge position	φLE	[°]	0
+					Trailing edge position	φTE	[°]	19.1
+					Wrap angle	Δφ	[°]	19.1
+					Overlap angle	φB	[°]	-2.1
+					Blade angle leading edge	αBLE	[°]	90
+					Blade angle trailing edge	αBTE	[°]	20
+				Meanline 3 (Shroud)				
+					Leading edge position	φLE	[°]	0
+					Trailing edge position	φTE	[°]	19.1
+					Wrap angle	Δφ	[°]	19.1
+					Overlap angle	φB	[°]	-2.1
+					Blade angle leading edge	αBLE	[°]	90
+					Blade angle trailing edge	αBTE	[°]	22.4
+		Blade profiles						
+			Thickness definition					Perpendicular to mean line
+			Apply thickness to					Meanline
+			Thickness exponent				[-]	0
+			Blade Passage					
+				Max. sphere radius			[mm]	3.354
+				Leading Edge				
+					Cross section area		[mm²]	95.54
+					Distance blade-to-blade		[mm]	11.415
+					Distance hub-to-shroud		[mm]	8.355
+				Trailing Edge				
+					Cross section area		[mm²]	56.11
+					Distance blade-to-blade		[mm]	6.708
+					Distance hub-to-shroud		[mm]	8.396
+				Throat				
+					Cross section area		[mm²]	56.11
+					Distance blade-to-blade		[mm]	6.708
+					Distance hub-to-shroud		[mm]	8.396
+			Blade					
+				Design mode				Freeform
+				SS-PS-Coupling				Symmetric
+				Leading edge rounded				-
+				Trailing edge rounded				-
+				Asymmetry at leading edge at Hub			[mm]	0
+				Asymmetry at trailing edge at Hub			[mm]	0
+				Asymmetry at leading edge at Shroud			[mm]	0
+				Asymmetry at trailing edge at Shroud			[mm]	0
+				Thickness Hub (LE → TE)			[mm]	[1.5, 1.133, 0.781, 0.5]
+				Thickness Shroud (LE → TE)			[mm]	[1.5, 1.134, 0.797, 0.5]
+				PS hub control point thickness		s	[mm]	[0.672, 0.375, 0.391]
+				PS shroud control point thickness		s	[mm]	[0.668, 0.375, 0.413]
+				Max. thickness (Hub, Shroud)			[mm]	[1.5, 1.5]
+				Max. thickness location (Hub, Shroud)			[%]	[0, 0]
+		Blade edges						
+			Blade Passage					
+				Max. sphere radius			[mm]	3.384
+				Leading Edge				
+					Cross section area		[mm²]	93.93
+					Distance blade-to-blade		[mm]	11.17
+					Distance hub-to-shroud		[mm]	8.365
+				Trailing Edge				
+					Cross section area		[mm²]	56.8
+					Distance blade-to-blade		[mm]	6.768
+					Distance hub-to-shroud		[mm]	8.389
+				Throat				
+					Cross section area		[mm²]	56.8
+					Distance blade-to-blade		[mm]	6.768
+					Distance hub-to-shroud		[mm]	8.389
+			Blade					
+				Leading edge mode				Ellipse  
+				Hub-to-shroud				Linear
+				Hub axis ratio			[-]	3
+				Shroud axis ratio			[-]	3
+				Trailing edge mode				Ellipse  
+				Hub-to-shroud				Linear
+				Hub axis ratio			[-]	3
+				Shroud axis ratio			[-]	3
+		Model finishing						
+			Create extended blade					-
+		Performance prediction Euler						
+			Flow factor				[-]	0
+			Hydraulic resistance			ζh	[-]	0
+			Shock losses			ζs	[-]	0
+	 2: [Impeller_1]							
+		Active						✔
+		Neighbor distance at hub					[mm]	0
+		Neighbor distance at shroud					[mm]	0
+		Inlet						
+			Center point			z, r	[mm; mm]	[0; 35.425]
+			Center line diameter			d	[mm]	70.85
+			Area			A	[mm²]	1858.6
+			Width			b	[mm]	8.35
+			Angle			γ	[°]	90
+			Angle mode					User-defined
+		Outlet						
+			Center point			z, r	[mm; mm]	[8.267; 35.425]
+			Center line diameter			d	[mm]	70.85
+			Area			A	[mm²]	1858.6
+			Width			b	[mm]	8.35
+			Angle			γ	[°]	90
+			Angle mode					User-defined
+		Component flow properties						
+			Inlet - Flow properties					
+				Density		ρ1	[kg/m³]	0.746
+				Static pressure		p1	[bar]	1.8113
+				Temperature		T1	[°C]	572.4
+				Total density		ρt1	[kg/m³]	1.127
+				Total pressure		pt1	[bar]	3.15
+				Total temperature		Tt1	[°C]	700
+				Inlet - Velocity triangle				
+					Peripheral speed	u1	[m/s]	445.2
+					Meridional velocity	cm1	[m/s]	180.3
+					Meridional velocity (internal)	cm*1	[m/s]	180.3
+					Abs. circumferential velocity	cu1	[m/s]	505.9
+					Absolute velocity	c1	[m/s]	537.1
+					Rel. circumferential velocity	wu1	[m/s]	60.8
+					Relative velocity	w1	[m/s]	190.2
+					Absolute flow angle	α1	[°]	19.6
+					Relative flow angle	β1	[°]	108.6
+					Peripheral Mach Number	MaU1	[-]	0.78
+					Absolute Mach Number	MaC1	[-]	0.941
+					Relative Mach Number	MaW1	[-]	0.333
+			Outlet - Flow properties					
+				Density		ρ2	[kg/m³]	0.5
+				Static pressure		p2	[bar]	1.2115
+				Temperature		T2	[°C]	570.7
+				Total density		ρt2	[kg/m³]	0.558
+				Total pressure		pt2	[bar]	1.4028
+				Total temperature		Tt2	[°C]	602.7
+				Outlet - Velocity triangle				
+					Peripheral speed	u2	[m/s]	445.2
+					Meridional velocity	cm2	[m/s]	269
+					Meridional velocity (internal)	cm*2	[m/s]	269
+					Abs. circumferential velocity	cu2	[m/s]	4.8
+					Absolute velocity	c2	[m/s]	269
+					Rel. circumferential velocity	wu2	[m/s]	-440.3
+					Relative velocity	w2	[m/s]	516
+					Absolute flow angle	α2	[°]	89
+					Relative flow angle	β2	[°]	31.4
+					Peripheral Mach Number	MaU2	[-]	0.781
+					Absolute Mach Number	MaC2	[-]	0.472
+					Relative Mach Number	MaW2	[-]	0.905
+		Main dimensions						
+			Version 1.					
+				Setup				
+					Unshrouded			✔
+					Tip clearance inlet	xIn	[mm]	0.396
+					Tip clearance outlet	xOut	[mm]	0.396
+					Material density	ρ	[kg/m³]	7750
+					Inflow swirl			Upstream swirl
+					Impeller type			Standard
+					Manual dimensioning			-
+					Blade design mode			Mean Line
+				Stage info				
+					Energy fraction	 	[%]	100
+					Pressure ratio (total-static)	πts	[-]	2.6
+					Contra rotating			-
+					Alternative speed			-
+				Impeller				
+					Specific speed (EU)	nq	[-]	41.6
+				Parameter types				
+					Used for ave. diameter dAvg1			Isen. vel. ratio total-static
+					Used for inlet diameters dH1, dS1			Height diameter ratio
+					Meridional expansion/ contraction			Coaxial
+				Parameters				
+					Isen. vel. ratio total-static	u/c0	[-]	0.651
+					Blade height / Tip diameter	h/dS1	[-]	0.105
+				Pressure				
+					Pressure ratio total-to-total	πtt	[-]	2.246
+				Power				
+					Actual power output	PD	[kW]	56.3
+					Power loss	PL	[kW]	-5.229
+				Efficiency				
+					Total-to-total efficiency	ηtt	[%]	80
+					Isentropic efficiency total-static	ηts	[%]	61.6
+					Mechanical efficiency	ηm	[%]	96
+				Global values				
+					Work coefficient	ψ	[-]	1.18
+					Specific diameter	δ	[-]	2.438
+					Total flow coefficient	φt	[-]	0.183
+					Meridional flow coefficient	φm	[-]	0.362
+					Meridional velocity ratio	cm2/cm1	[-]	1.492
+					Relative velocity ratio	w2/w1	[-]	2.734
+					Inlet area	A1	[mm²]	1858.6
+					Outlet area	A2	[mm²]	1858.6
+					Area ratio	A2/A1	[-]	1
+					Degree of reaction	R	[-]	0.392
+					Spouting velocity	c0	[m/s]	688.5
+					Isen. vel. ratio total-static	u/c0	[-]	0.647
+					Isen. vel. ratio total-total	u/c0t	[-]	0.696
+				Reynolds numbers				
+					Reynolds number (d1)	Re(d1)	[-]	2.5676E6
+					Reynolds number (b1)	Re(b1)	[-]	2.707E5
+					Reynolds number (d2)	Re(d2)	[-]	2.5676E6
+					Reynolds number (b2)	Re(b2)	[-]	2.707E5
+				Dimensions				
+					Automatic			✔
+					Hub diameter inlet	dH1	[mm]	62.5
+					Shroud diameter inlet	dS1	[mm]	79.2
+					Hub diameter outlet	dH2	[mm]	62.5
+					Shroud diameter outlet	dS2	[mm]	79.2
+					Axial extension ratio	Δz/Δr	[-]	1.493
+				Inlet				
+					Mid diameter	dM1	[mm]	70.85
+					Area averaged diameter	dAvg1	[mm]	71.34
+					Blade height	h1	[mm]	7.954
+					Diameter ratio	ν1	[-]	0.789
+					Peripheral tip speed	u1S	[m/s]	497.6
+					Machine tip Mach Number	MuS1	[-]	0.872
+				Outlet				
+					Mid diameter	dM2	[mm]	70.85
+					Area averaged diameter	dAvg2	[mm]	71.34
+					Blade height	h2	[mm]	7.954
+					Diameter ratio	ν2	[-]	0.789
+					Peripheral tip speed	u2S	[m/s]	497.6
+					Machine tip Mach Number	MuS2	[-]	0.873
+				Thermodynamic efficiency				
+					Isentropic efficiency total-total	ηtt	[%]	100
+					Polytropic efficiency total-total	ηpol	[%]	51.2
+		Meridional contour						
+			Leading edge fixed on inlet					-
+			Trailing edge fixed on outlet					-
+			Axial extension max.			ΔzMax	[mm]	8.267
+			Radial extension max.			ΔrMax	[mm]	8.35
+			Hub Contour Controls			z, r	[mm; mm]	[[0; 31.25], [8.267; 31.25]]
+			Shroud Contour Controls			z, r	[mm; mm]	[[0; 39.6], [8.267; 39.6]]
+			Inlet angle				[°]	90
+			Outlet angle				[°]	90
+			Axial start position			z	[mm]	0
+			Axial extension ratio			Δz/Δr	[-]	0.99
+			Leading Edge					
+				Point at hub (rel.)		u	[%]	2
+				Point at shroud (rel.)		u	[%]	2
+				Point at hub (abs.)			[mm; mm]	[0.165; 31.25]
+				Point at shroud (abs.)			[mm; mm]	[0.165; 39.204]
+				Width circle diameter		b	[mm]	8.35
+				Width hub to tip		b*	[mm]	7.954
+				Diameter at mid span		d	[mm]	70.85
+				Diameter average		d*	[mm]	70.45
+			Trailing Edge					
+				Point at hub (rel.)		u	[%]	98
+				Point at shroud (rel.)		u	[%]	98
+				Point at hub (abs.)			[mm; mm]	[8.101; 31.25]
+				Point at shroud (abs.)			[mm; mm]	[8.101; 39.204]
+				Width circle diameter		b	[mm]	8.35
+				Width hub to tip		b*	[mm]	7.954
+				Diameter at mid span		d	[mm]	70.85
+				Diameter average		d*	[mm]	70.45
+		Blade properties						
+			Number of blades					24
+			Number of spans					3
+			Zweifel coefficient			ψ	[-]	1.15
+			Blade shape					Free-form 3D
+			Blockage mode					Tangential
+			Automatic βB1					✔
+			Automatic βB2					✔
+			Beta interpolation mode LE					User defined
+			Beta interpolation mode TE					Linear
+			Rel. deceleration hub			w2/w1	[-]	1.821
+			Rel. deceleration shroud			w2/w1	[-]	2.913
+			Abs. deflection angle hub			ΔαF	[°]	70.4
+			Abs. deflection angle shroud			ΔαF	[°]	66.1
+			Rel. deflection angle hub			ΔβF	[°]	-92.7
+			Rel. deflection angle shroud			ΔβF	[°]	-42.5
+			Main blade					
+				Thickness LE@hub		sLEH	[mm]	0.8
+				Thickness LE@shroud		sLES	[mm]	0.8
+				Thickness TE@hub		sTEH	[mm]	0.8
+				Thickness TE@shroud		sTES	[mm]	0.8
+				Blade angle leading edge		βB1	[°]	[131, 108.3, 79.6]
+				Blade angle trailing edge		βB2	[°]	[34.6, 28.2]
+			Span distribution					
+				CurveMode				Straight line
+			Incidence					
+				Definition				Shockless flowrate
+				Ratio hub		RQHub	[%]	100
+				Ratio shroud		RQShr	[%]	100
+			Slip					
+				Slip model				User defined
+				Angle hub		δHub	[°]	-5
+				Angle shroud		δShr	[°]	-5
+			Suction side [hub, shroud]					
+				Circumferential velocity		uS	[m/s]	[392.7, 497.6]
+				Angle of absolute flow		αFS	[°]	[17.2, 22.4]
+				Angle of relative flow		βFS	[°]	[136.3, 71.7]
+				Circumferential component of relative velocity		wuS	[m/s]	[188.4, -59.5]
+				Relative velocity		wS	[m/s]	[260.7, 189.8]
+				Meridional component of absolute velocity		cmS	[m/s]	[180.3, 180.3]
+				Radial component of absolute velocity		crS	[m/s]	[0, 0]
+				Axial component of absolute velocity		caxS	[m/s]	[180.3, 180.3]
+				Circumferential component of absolute velocity		cuS	[m/s]	[581.1, 438.2]
+				Absolute velocity		cS	[m/s]	[608.4, 473.8]
+			Leading edge (outside blade passage) [hub, shroud]					
+				Angle of absolute flow		αF0	[°]	[17.2, 22.2]
+				Angle of relative flow		βF0	[°]	[136.3, 74.5]
+				Circumferential component of relative velocity		wu0	[m/s]	[188.4, -50.1]
+				Relative velocity		w0	[m/s]	[260.7, 187.1]
+				Meridional component of absolute velocity		cm0	[m/s]	[180.3, 180.3]
+				Radial component of absolute velocity		cr0	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax0	[m/s]	[180.3, 180.3]
+				Circumferential component of absolute velocity		cu0	[m/s]	[581.1, 442.6]
+				Absolute velocity		c0	[m/s]	[608.4, 477.9]
+			Leading edge (inside blade passage) [hub, shroud]					
+				Circumferential velocity		u1	[m/s]	[392.7, 492.7]
+				Blade blockage		τ1	[-]	[1.149, 1.086]
+				Incidence		i	[°]	[-1.2, 4]
+				Angle of absolute flow		αF1	[°]	[19.6, 23.9]
+				Angle of relative flow		βF1	[°]	[132.3, 75.7]
+				Circumferential component of relative velocity		wu1	[m/s]	[188.4, -50.1]
+				Relative velocity		w1	[m/s]	[280, 202.1]
+				Meridional component of absolute velocity		cm1	[m/s]	[207.1, 195.8]
+				Radial component of absolute velocity		cr1	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax1	[m/s]	[207.1, 195.8]
+				Circumferential component of absolute velocity		cu1	[m/s]	[581.1, 442.6]
+				Absolute velocity		c1	[m/s]	[616.9, 484]
+			Trailing edge (inside blade passage) [hub, shroud]					
+				Circumferential velocity		u2	[m/s]	[392.7, 492.7]
+				Blade blockage		τ2	[-]	[1.208, 1.198]
+				Deviation		δ	[°]	[-5, -5]
+				Angle of absolute flow		αF2	[°]	[90, 90]
+				Angle of relative flow		βF2	[°]	[39.6, 33.2]
+				Circumferential component of relative velocity		wu2	[m/s]	[-392.7, -492.7]
+				Relative velocity		w2	[m/s]	[509.7, 588.6]
+				Meridional component of absolute velocity		cm2	[m/s]	[324.9, 322.2]
+				Radial component of absolute velocity		cr2	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax2	[m/s]	[324.9, 322.2]
+				Circumferential component of absolute velocity		cu2	[m/s]	[0, 0]
+				Absolute velocity		c2	[m/s]	[324.9, 322.2]
+			Trailing edge (outside blade passage) [hub, shroud]					
+				Angle of absolute flow		αF3	[°]	[90, 90]
+				Angle of relative flow		βF3	[°]	[34.4, 28.6]
+				Circumferential component of relative velocity		wu3	[m/s]	[-392.7, -492.7]
+				Relative velocity		w3	[m/s]	[476, 561.3]
+				Meridional component of absolute velocity		cm3	[m/s]	[269, 269]
+				Radial component of absolute velocity		cr3	[m/s]	[0, 0]
+				Axial component of absolute velocity		cax3	[m/s]	[269, 269]
+				Circumferential component of absolute velocity		cu3	[m/s]	[0, 0]
+				Absolute velocity		c3	[m/s]	[269, 269]
+			Cu-Cm-definition					
+				Mode				Variable load rel. to free vortex
+				Slope Cu/Cufv			[-]	0
+		Blade mean lines						
+			Design mode					Conformal mapping
+			Blade Passage					
+				Max. sphere radius			[mm]	2.878
+				Leading Edge				
+					Cross section area		[mm²]	64.89
+					Distance blade-to-blade		[mm]	8.115
+					Distance hub-to-shroud		[mm]	8.139
+				Trailing Edge				
+					Cross section area		[mm²]	45.93
+					Distance blade-to-blade		[mm]	5.756
+					Distance hub-to-shroud		[mm]	7.991
+				Throat				
+					Cross section area		[mm²]	45.93
+					Distance blade-to-blade		[mm]	5.756
+					Distance hub-to-shroud		[mm]	7.991
+			Blade					
+				Coupled mean lines				✔
+				Stacking position			[%]	0
+				Wrap angle		Δφ	[°]	10
+				Leading edge position		φLE	[°]	[0, 0, 0]
+				Trailing edge position		φTE	[°]	[10, 10, 10]
+				Lean angle leading edge		λ1	[°]	[0, 0, 0]
+				Rake angle trailing edge		λ2	[°]	[0, 0, 0]
+				Rake angle at LE		R	[°]	0
+				Rake angle at TE		R	[°]	0
+				Overlapping		Δφ/t	[-]	0.667
+				Meanline 1 (Hub)				
+					Leading edge position	φLE	[°]	0
+					Trailing edge position	φTE	[°]	10
+					Wrap angle	Δφ	[°]	10
+					Overlap angle	φB	[°]	-5
+					Blade angle leading edge	βB1	[°]	131
+					Blade angle trailing edge	βB2	[°]	34.6
+				Meanline 2				
+					Leading edge position	φLE	[°]	0
+					Trailing edge position	φTE	[°]	10
+					Wrap angle	Δφ	[°]	10
+					Overlap angle	φB	[°]	-5
+					Blade angle leading edge	βB1	[°]	108.3
+					Blade angle trailing edge	βB2	[°]	31.4
+				Meanline 3 (Shroud)				
+					Leading edge position	φLE	[°]	0
+					Trailing edge position	φTE	[°]	10
+					Wrap angle	Δφ	[°]	10
+					Overlap angle	φB	[°]	-5
+					Blade angle leading edge	βB1	[°]	79.6
+					Blade angle trailing edge	βB2	[°]	28.2
+		Blade profiles						
+			Thickness definition					Perpendicular to mean line
+			Thickness exponent				[-]	0
+			Blade Passage					
+				Max. sphere radius			[mm]	2.553
+				Leading Edge				
+					Cross section area		[mm²]	56.94
+					Distance blade-to-blade		[mm]	7.104
+					Distance hub-to-shroud		[mm]	8.137
+				Trailing Edge				
+					Cross section area		[mm²]	40.64
+					Distance blade-to-blade		[mm]	5.106
+					Distance hub-to-shroud		[mm]	7.977
+				Throat				
+					Cross section area		[mm²]	40.64
+					Distance blade-to-blade		[mm]	5.106
+					Distance hub-to-shroud		[mm]	7.977
+			Blade					
+				Design mode				Freeform
+				SS-PS-Coupling				Symmetric
+				Leading edge rounded				✔
+				Trailing edge rounded				✔
+				Asymmetry at leading edge at Hub			[mm]	0
+				Asymmetry at trailing edge at Hub			[mm]	0
+				Asymmetry at leading edge at Shroud			[mm]	0
+				Asymmetry at trailing edge at Shroud			[mm]	0
+				Thickness Hub (LE → TE)			[mm]	[0, 1.299, 0.782, 0]
+				Thickness Shroud (LE → TE)			[mm]	[0, 1.286, 0.758, 0]
+				PS hub control point thickness		s	[mm]	[0.801, 1.185, -0.002, 0.303]
+				PS shroud control point thickness		s	[mm]	[0.844, 1.165, -0.072, 0.35]
+				Max. thickness (Hub, Shroud)			[mm]	[1.332, 1.331]
+				Max. thickness location (Hub, Shroud)			[%]	[25.2, 23.9]
+		Blade edges						
+			Blade Passage					
+				Max. sphere radius			[mm]	2.537
+				Leading Edge				
+					Cross section area		[mm²]	56.59
+					Distance blade-to-blade		[mm]	7.059
+					Distance hub-to-shroud		[mm]	8.136
+				Trailing Edge				
+					Cross section area		[mm²]	40.39
+					Distance blade-to-blade		[mm]	5.075
+					Distance hub-to-shroud		[mm]	7.978
+				Throat				
+					Cross section area		[mm²]	40.39
+					Distance blade-to-blade		[mm]	5.075
+					Distance hub-to-shroud		[mm]	7.978
+			Blade					
+				Leading edge mode				None
+				Edge position			[%]	5
+				Trailing edge mode				None
+				Edge position			[%]	95
+		CFD setup						
+			RSI connection					
+				Inlet				-
+		Model finishing						
+			Create extended blade					-
+		Performance prediction Euler						
+			Flow factor				[-]	0
+			Hydraulic resistance			ζh	[-]	0
+			Shock losses			ζs	[-]	0
+			Slip coefficient			γ	[-]	1
