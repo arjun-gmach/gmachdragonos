@@ -18,6 +18,7 @@ Mega (runs the rig) ──USB──[USB isolator]── Raspberry Pi ──Wi-Fi
 | `dashboard/` | Dashboard source (`index.src.html`) and `build.py`, which generates every copy |
 | `usb/` | Stand-alone dashboard: open in Chrome/Edge with the Mega on a USB cable, no Pi needed |
 | `esp32/` | Optional ESP32 Wi-Fi bridge (Mega TX1/RX1 → ESP32 hotspot). Not used with the Pi. |
+| `design/` | Engine design records: turbine rotor redesign (CFturbo settings, iteration log, reports, screenshots) |
 
 ## Mega wiring
 
